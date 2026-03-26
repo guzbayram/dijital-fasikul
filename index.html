@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrnGz Akademi</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--p:#6B4FBB;--pd:#4a2f99;--pl:#9b7de0;--pb:#f0ebfa;--o:#f4913a;--od:#e07020;--g:#16a34a;--r:#dc2626;--bg:#f5f3ff;--card:#fff;--tx:#1e1340;--mu:#6b7280;--br:#e0d9f5;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.scr{display:none;min-height:100vh;}
+.scr.on{display:flex;flex-direction:column;}
+#sLogin{align-items:center;justify-content:center;background:linear-gradient(135deg,#2d1b69,#4a2f99,#6B4FBB);position:relative;overflow:hidden;}
+#sLogin::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:rgba(255,255,255,.04);top:-200px;right:-150px;}
+#sLogin::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(244,145,58,.08);bottom:-100px;left:-100px;}
+.lbox{background:rgba(255,255,255,.97);border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.3);position:relative;z-index:1;animation:fu .5s ease both;}
+@keyframes fu{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.llogo{text-align:center;margin-bottom:32px;}
+.lico{width:64px;height:64px;background:linear-gradient(135deg,var(--p),var(--o));border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;box-shadow:0 8px 24px rgba(107,79,187,.35);}
+.llogo h1{font-size:22px;font-weight:900;color:var(--pd);}
+.llogo p{font-size:13px;color:var(--mu);margin-top:2px;}
+.fg{margin-bottom:16px;}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.fg input,.fg select{width:100%;padding:12px 16px;border:2px solid var(--br);border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;color:var(--tx);background:var(--bg);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--p);background:#fff;}
+.btnL{width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(107,79,187,.4);transition:all .2s;}
+.btnL:hover{transform:translateY(-1px);}
+.btnL:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.lerr{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--r);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:12px;display:none;}
+.hdr{background:linear-gradient(135deg,var(--pd),var(--p));color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(107,79,187,.3);flex-shrink:0;}
+.hdr .logo{font-size:16px;font-weight:900;flex:1;}.hdr .logo span{color:var(--o);}
+.hu{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;}
+.hav{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;}
+.hrl{background:rgba(255,255,255,.15);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.hrl.admin{background:rgba(244,145,58,.35);color:#fde68a;}
+.hrl.teacher{background:rgba(16,163,74,.25);color:#bbf7d0;}
+.btnO{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btnO:hover{background:rgba(255,255,255,.25);}
+.tnav{display:flex;background:#fff;border-bottom:2px solid var(--br);padding:0 24px;gap:4px;flex-shrink:0;overflow-x:auto;}
+.tb{padding:12px 16px;border:none;background:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--mu);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;}
+.tb:hover{color:var(--p);}
+.tb.on{color:var(--p);border-bottom-color:var(--p);}
+.ca{flex:1;overflow-y:auto;padding:24px;background:var(--bg);}
+.tp{display:none;}.tp.on{display:block;}
+.stit{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:12px;}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:32px;}
+.fc{background:var(--card);border:1.5px solid var(--br);border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;gap:8px;transition:all .2s;box-shadow:0 4px 24px rgba(107,79,187,.12);cursor:pointer;}
+.fc:hover{transform:translateY(-3px);border-color:var(--pl);box-shadow:0 8px 32px rgba(107,79,187,.18);}
+.fnum{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;margin-bottom:4px;}
+.fnum.purple{background:#ede8fb;color:var(--p);}
+.fnum.orange{background:#fef3e8;color:var(--od);}
+.fnum.green{background:#f0fdf4;color:var(--g);}
+.ftit{font-size:14px;font-weight:800;line-height:1.3;}
+.fsub{font-size:11px;color:var(--mu);font-weight:600;}
+.fst{margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;}
+.fs{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.fs.c{background:#f0fdf4;color:var(--g);}
+.fs.w{background:#fef2f2;color:var(--r);}
+.fs.t{background:var(--pb);color:var(--p);}
+.fs.n{background:var(--pb);color:var(--p);}
+.scards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;max-width:860px;margin-left:auto;margin-right:auto;}
+.fscards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:16px;}@media(max-width:700px){.fscards{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.scards{grid-template-columns:repeat(3,1fr);}}
+.sc{background:var(--card);border:1.5px solid var(--br);border-radius:14px;padding:16px;text-align:center;}
+.sc .v{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px;}
+.sc .l{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;}
+.sc.p .v{color:var(--p);}.sc.g .v{color:var(--g);}.sc.r .v{color:var(--r);}.sc.o .v{color:var(--od);}
+.dt{background:var(--card);border:1.5px solid var(--br);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.dth{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:12px 18px;font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.dt table{width:100%;border-collapse:collapse;font-size:12px;}
+.dt th{background:var(--pb);color:var(--pd);font-weight:800;padding:8px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+.dt td{padding:9px 14px;border-bottom:1px solid var(--br);font-weight:600;color:var(--tx);}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:hover td{background:var(--pb);}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill.g{background:#f0fdf4;color:var(--g);}
+.pill.r{background:#fef2f2;color:var(--r);}
+.pill.p{background:var(--pb);color:var(--p);}
+.pill.o{background:#fef3e8;color:var(--od);}
+.ul{background:var(--card);border:1.5px solid var(--br);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.ulh{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.ulh h3{font-size:14px;font-weight:800;}
+.btn{border:none;border-radius:8px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn:hover{opacity:.85;}
+.btn.pr{background:var(--p);color:#fff;}.btn.su{background:var(--g);color:#fff;}.btn.da{background:var(--r);color:#fff;}.btn.dl{background:#7f1d1d;color:#fff;}.btn.gh{background:var(--pb);color:var(--p);}
+.ur{display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid var(--br);gap:12px;flex-wrap:wrap;}
+.ur:last-child{border-bottom:none;}
+.uav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+.uav.admin{background:#fef3e8;color:var(--od);}.uav.teacher{background:#f0fdf4;color:var(--g);}.uav.student{background:var(--pb);color:var(--p);}
+.ui{flex:1;min-width:120px;}
+.un{font-size:14px;font-weight:700;}
+.um{font-size:11px;color:var(--mu);font-weight:600;margin-top:1px;}
+.ua{display:flex;gap:6px;flex-wrap:wrap;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.mo.on{display:flex;}
+.md{background:#fff;border-radius:20px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:fu .25s ease both;max-height:90vh;overflow-y:auto;}
+.md h3{font-size:18px;font-weight:800;color:var(--pd);margin-bottom:20px;}
+.mda{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.ld{text-align:center;padding:48px;color:var(--mu);font-weight:700;}
+.sp{width:32px;height:32px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.es{text-align:center;padding:48px 24px;color:var(--mu);}
+.es .ic{font-size:40px;margin-bottom:12px;}
+.es p{font-size:14px;font-weight:600;}
+.sdiv{border:none;border-top:2px solid var(--br);margin:24px 0;}
+.cbx{background:var(--pb);border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2;color:var(--pd);}
+@media(max-width:600px){.ca{padding:16px;}.lbox{padding:32px 24px;}.fgrid{grid-template-columns:1fr 1fr;}.scards{grid-template-columns:1fr 1fr;}}
+
+/* ── Fasikül iframe overlay ── */
+#frmOverlay{display:none;position:fixed;inset:0;z-index:5000;background:#fff;flex-direction:column;}
+#frmOverlay.on{display:flex;}
+#frmBar{background:linear-gradient(135deg,#4a2f99,#6B4FBB);color:#fff;padding:0 16px;height:44px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+#frmBar button{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:5px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+#frmBar button:hover{background:rgba(255,255,255,0.3);}
+#frmBar .ftitle{font-size:14px;font-weight:800;flex:1;}
+#fasikülFrame{flex:1;border:none;width:100%;height:100%;}
+</style>
+</head>
+<body>
+<div id="sLoading" style="position:fixed;inset:0;background:linear-gradient(135deg,#2d1b69,#4a2f99,#6B4FBB);display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="text-align:center;color:#fff;">
+    <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;"></div>
+    <div style="font-family:Nunito,sans-serif;font-weight:700;font-size:14px;opacity:.8;">Yükleniyor...</div>
+  </div>
+</div>
+<div id="sLogin" class="scr">
+  <div class="lbox">
+    <div class="llogo">
+      <div class="lico">📐</div>
+      <h1>BrnGz Akademi</h1>
+      <p>Dijital Defter Portalı</p>
+    </div>
+    <div class="fg"><label>Kullanıcı Adı</label><input type="text" id="lu" placeholder="kullanıcı adınız" autocomplete="off"></div>
+    <div class="fg"><label>Şifre</label><input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btnL" id="lbtn" onclick="doLogin()">Giriş Yap</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+<div id="sApp" class="scr">
+  <div class="hdr">
+    <div class="logo">BrnGz <span>Akademi</span></div>
+    <div class="hu">
+      <div class="hav" id="hav">?</div>
+      <span id="hnm">-</span>
+      <span class="hrl" id="hrl">-</span>
+      <button class="btnO" onclick="doLogout()">Çıkış</button>
+    </div>
+  </div>
+  <div class="tnav" id="tnav"></div>
+  <div class="ca">
+    <div class="tp on" id="tFas"><div class="stit">📚 Fasiküller</div><div class="fgrid" id="fgrid"></div></div>
+    <div class="tp" id="tBen"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
+    <div class="tp" id="tOgr"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
+    <div class="tp" id="tOgt"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
+    <div class="tp" id="tYon"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
+  </div>
+</div>
+<!-- Modals -->
+<div class="mo" id="mAdd">
+  <div class="md">
+    <h3>➕ Kullanıcı Ekle</h3>
+    <div class="fg"><label>Ad Soyad</label><input type="text" id="nn" placeholder="Ali Yılmaz"></div>
+    <div class="fg"><label>Kullanıcı Adı</label><input type="text" id="nu" placeholder="aliyilmaz"></div>
+    <div class="fg"><label>Şifre</label><input type="text" id="np" placeholder="şifre123"></div>
+    <div class="fg"><label>Rol</label><select id="nr" onchange="toggleTA()"><option value="student">Öğrenci</option><option value="teacher">Öğretmen</option></select></div>
+    <div class="fg" id="tag"><label>Öğretmen Ata</label><select id="nt"><option value="">-- Öğretmen seç --</option></select></div>
+    <div class="mda"><button class="btn gh" onclick="closeModal('mAdd')">İptal</button><button class="btn pr" id="sbtn" onclick="saveUser()">Kaydet</button></div>
+  </div>
+</div>
+<div class="mo" id="mReset">
+  <div class="md">
+    <h3>🗑️ İstatistikleri Sıfırla</h3>
+    <p style="font-size:14px;color:var(--mu);font-weight:600;" id="rtxt">Emin misiniz?</p>
+    <div class="mda"><button class="btn gh" onclick="closeModal('mReset')">İptal</button><button class="btn da" onclick="doReset()">Sıfırla</button></div>
+  </div>
+</div>
+<div class="mo" id="mCred">
+  <div class="md">
+    <h3>📋 Giriş Bilgileri</h3>
+    <div class="cbx" id="credbox"></div>
+    <div class="mda"><button class="btn gh" onclick="closeModal('mCred')">Kapat</button><button class="btn pr" onclick="doCopy()">📋 Kopyala</button></div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,query,where,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB=initializeApp({apiKey:"AIzaSyAHpqHca8a4DHsa5rbtnWPJ0KRUPCLBRdg",authDomain:"dijital-defter-50c06.firebaseapp.com",projectId:"dijital-defter-50c06",storageBucket:"dijital-defter-50c06.firebasestorage.app",messagingSenderId:"989908182887",appId:"1:989908182887:web:eec6c1ad6c9cf09dbfb1c2"});
+const auth=getAuth(FB),db=getFirestore(FB);
+
+const FASIKUL=[
+  {id:'f2',t:'2. Matematik_Temel_Kavramlar',s:'Matematik',f:'Matematik_Temel_Kavramlar.html',c:'purple',n:'2'},
+  {id:'f3',t:'3. Bilge-Fizikçiler',s:'Fizik 10. Sınıf',f:'BilgeFizikciler.html',c:'purple',n:'3'},
+  {id:'f4',t:'4. Oran Orantı & Yüzde',s:'Matematik — TYT',f:'kr_akademi_4.html',c:'orange',n:'4'},
+  {id:'f5',t:'5. Fonksiyonlar-1',s:'Matematik 10. Sınıf',f:'kr_akademi_5.html',c:'green',n:'5'},
+  {id:'f6',t:'6. Hareket',s:'Fizik 10. Sınıf',f:'duzgun-dogrusal-hareket.html',c:'orange',n:'6'},
+  {id:'f7',t:'7. İş-Güç-Enerji',s:'Fizik 10. Sınıf',f:'is-guc-enerji.html',c:'green',n:'7'},
+];
+
+let CU=null,CP=null,rUID=null,cpTxt='';
+const fmt=m=>!m?'0dk':m<60?m+'dk':Math.floor(m/60)+'s '+(m%60)+'dk';
+const ini=n=>(n||'?').charAt(0).toUpperCase();
+const $=id=>document.getElementById(id);
+window.closeModal=id=>$(id).classList.remove('on');
+const oModal=id=>$(id).classList.add('on');
+const showScr=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');};
+const actTab=id=>{document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));document.querySelectorAll('.tp').forEach(p=>p.classList.toggle('on',p.id===id));};
+const ld=id=>$(id).innerHTML='<div class="ld"><div class="sp"></div>Yükleniyor...</div>';
+
+window.doLogin=async()=>{
+  const u=$('lu').value.trim().toLowerCase(),p=$('lp').value.trim();
+  const btn=$('lbtn'),err=$('lerr');
+  if(!u||!p)return;
+  btn.disabled=true;btn.textContent='Giriş yapılıyor...';err.style.display='none';
+  const emails=[u+'@admin.com',u+'@brngs.com',u+'@dijital-defter.app'];
+  let ok=false;
+  for(const email of emails){
+    try{await signInWithEmailAndPassword(auth,email,p);ok=true;break;}catch(e){}
+  }
+  if(!ok){err.textContent='Kullanıcı adı veya şifre hatalı.';err.style.display='block';btn.disabled=false;btn.textContent='Giriş Yap';}
+};
+
+
+window.openFrame=(url,title)=>{
+  const ov=$('frmOverlay');
+  document.getElementById('fasikülFrame').src=url;
+  document.getElementById('frmTitle').textContent=title||'';
+  ov.classList.add('on');
+};
+window.closeFrame=()=>{
+  const ov=$('frmOverlay');
+  ov.classList.remove('on');
+  document.getElementById('fasikülFrame').src='';
+  renderFas(); // istatistikleri yenile
+};
+// Fasikül sayfasından postMessage dinle
+window.addEventListener('message',e=>{
+  if(e.data==='closeFrame') closeFrame();
+});
+
+window.doLogout=async()=>{await signOut(auth);CU=null;CP=null;showScr('sLogin');};
+
+onAuthStateChanged(auth,async user=>{
+  const loadEl=document.getElementById('sLoading');
+  const btn=$('lbtn');
+  if(user){
+    CU=user;
+    let snap=await getDoc(doc(db,'users',user.uid));
+    if(!snap.exists()){
+      const isAdmin = user.email==='admin@admin.com'||user.email==='admin@brngs.com';
+      await setDoc(doc(db,'users',user.uid),{
+        name: isAdmin?'Admin':user.email.split('@')[0],
+        email: user.email,
+        role: isAdmin?'admin':'student',
+        teacherId: null,
+        createdAt: serverTimestamp()
+      });
+      snap=await getDoc(doc(db,'users',user.uid));
+    }
+    CP=snap.data();
+    // Önce loading'i gizle, sonra uygulamayı göster
+    if(loadEl)loadEl.style.display='none';
+    await showApp();
+  }else{
+    // Oturum yok — loading gizle, login göster
+    if(loadEl)loadEl.style.display='none';
+    showScr('sLogin');
+  }
+  if(btn){btn.disabled=false;btn.textContent='Giriş Yap';}
+});
+
+async function showApp(){
+  showScr('sApp');
+  $('hav').textContent=ini(CP.name);
+  $('hnm').textContent=CP.name;
+  const rl=$('hrl');
+  rl.textContent={admin:'Admin',teacher:'Öğretmen',student:'Öğrenci'}[CP.role]||CP.role;
+  rl.className='hrl '+CP.role;
+  buildTabs();
+  await renderFas();
+  actTab('tFas');
+}
+
+function buildTabs(){
+  const nav=$('tnav');nav.innerHTML='';
+  [{id:'tFas',l:'📚 Fasiküller',ro:['admin','teacher','student']},
+   {id:'tBen',l:'📊 Benim İstatistiklerim',ro:['admin','teacher','student']},
+   {id:'tOgr',l:'👨‍🎓 Öğrenci İstatistikleri',ro:['admin','teacher']},
+   {id:'tOgt',l:'👨‍🏫 Öğretmen İstatistikleri',ro:['admin']},
+   {id:'tYon',l:'⚙️ Yönetim',ro:['admin']},
+  ].forEach(t=>{
+    if(!t.ro.includes(CP.role))return;
+    const b=document.createElement('button');
+    b.className='tb';b.textContent=t.l;b.dataset.tab=t.id;
+    b.onclick=async()=>{
+      actTab(t.id);
+      if(t.id==='tBen'){ld('tBen');await renderSts(CU.uid,'tBen');}
+      if(t.id==='tOgr')await renderOgr();
+      if(t.id==='tOgt')await renderOgt();
+      if(t.id==='tYon')await renderYon();
+    };
+    nav.appendChild(b);
+  });
+}
+
+async function renderFas(){
+  const g=$('fgrid');g.innerHTML='<div class="ld"><div class="sp"></div>Yükleniyor...</div>';
+  const snap=await getDoc(doc(db,'stats',CU.uid));
+  const us=snap.exists()?snap.data():{};
+  g.innerHTML='';
+  FASIKUL.forEach(f=>{
+    const fs=us[f.id]||{},c=fs.correct||0,w=fs.wrong||0,m=fs.minutes||0;
+    const card=document.createElement('div');
+    card.className='fc';
+    card.innerHTML=`<div class="fnum ${f.c}">${f.n}</div><div class="ftit">${f.t}</div><div class="fsub">${f.s}</div><div class="fst">${c?`<span class="fs c">✅ ${c}</span>`:''}${w?`<span class="fs w">❌ ${w}</span>`:''}${m?`<span class="fs t">⏱ ${fmt(m)}</span>`:''}${!c&&!w&&!m?'<span class="fs n">Başlanmadı</span>':''}</div>`;
+    card.onclick=()=>{
+      sessionStorage.setItem('dd_uid',CU.uid);
+      sessionStorage.setItem('dd_name',CP.name);
+      sessionStorage.setItem('dd_role',CP.role);
+      sessionStorage.setItem('dd_fid',f.id);
+      openFrame(f.f, f.t);
+    };
+    g.appendChild(card);
+  });
+}
+
+function buildStsHTML(data){
+  let tc=0,tw=0,tm=0,ts=0;
+  FASIKUL.forEach(f=>{const fs=data[f.id]||{};tc+=fs.correct||0;tw+=fs.wrong||0;tm+=fs.minutes||0;ts+=fs.solutionViews||0;});
+  const tot=tc+tw,pct=tot?Math.round(tc/tot*100):0;
+  let h=`<div class="scards" style="max-width:860px;margin-left:auto;margin-right:auto;">
+    <div class="sc p"><div class="v">${tot}</div><div class="l">Toplam Soru</div></div>
+    <div class="sc g"><div class="v">${tc}</div><div class="l">Doğru</div></div>
+    <div class="sc r"><div class="v">${tw}</div><div class="l">Yanlış</div></div>
+    <div class="sc o"><div class="v">${pct}%</div><div class="l">Başarı</div></div>
+    <div class="sc p"><div class="v">${fmt(tm)}</div><div class="l">Süre</div></div>
+    <div class="sc o"><div class="v">${ts}</div><div class="l">Çözüm Görme</div></div>
+  </div>`;
+  let fi=0;
+  FASIKUL.forEach(f=>{
+    fi++;
+    const fs=data[f.id]||{},secs=fs.sections||{};
+    const ft=(fs.correct||0)+(fs.wrong||0),fp=ft?Math.round((fs.correct||0)/ft*100):0;
+    const clrs=['purple','orange','green','purple','orange','green','purple'];
+    const clr=clrs[(fi-1)%clrs.length];
+    const cleanTitle=f.t.replace(/^\d+\.\s*/,'');h+=`<div class="dt" style="max-width:860px;margin-left:auto;margin-right:auto;margin-bottom:16px;">
+      <div class="dth"><span>${fi}. ${cleanTitle}</span><span style="font-size:12px;opacity:.85;">${ft?`${fs.correct||0}✅ ${fs.wrong||0}❌ — %${fp} · ${fmt(fs.minutes||0)}`:'Henüz çalışılmadı'}</span></div>`;
+    if(ft>0){
+      h+=`<div class="fscards">
+        <div class="sc p"><div class="v">${ft}</div><div class="l">Toplam</div></div>
+        <div class="sc g"><div class="v">${fs.correct||0}</div><div class="l">Doğru</div></div>
+        <div class="sc r"><div class="v">${fs.wrong||0}</div><div class="l">Yanlış</div></div>
+        <div class="sc o"><div class="v">${fp}%</div><div class="l">Başarı</div></div>
+        <div class="sc p"><div class="v">${fmt(fs.minutes||0)}</div><div class="l">Süre</div></div>
+        <div class="sc o"><div class="v">${fs.solutionViews||0}</div><div class="l">Çözüm</div></div>
+      </div>`;
+      if(Object.keys(secs).length){
+        h+=`<table><tr><th>Bölüm</th><th>Soru</th><th>Doğru</th><th>Yanlış</th><th>Başarı</th><th>Çözüm</th></tr>`;
+        Object.entries(secs).sort(([a],[b])=>a.localeCompare(b,'tr')).forEach(([s,d])=>{
+          const st=(d.correct||0)+(d.wrong||0),sp=st?Math.round((d.correct||0)/st*100):0;
+          h+=`<tr><td>${s}</td><td>${st}</td><td><span class="pill g">✅ ${d.correct||0}</span></td><td><span class="pill r">❌ ${d.wrong||0}</span></td><td><span class="pill ${sp>=70?'g':sp>=40?'o':'r'}">${sp}%</span></td><td>${d.solutionViews||0}</td></tr>`;
+        });
+        h+=`</table>`;
+      }
+    }else{
+      h+=`<div style="padding:14px 18px;font-size:13px;color:var(--mu);font-weight:600;">Bu fasikülde henüz çalışılmadı.</div>`;
+    }
+    h+=`</div>`;
+  });
+  return h;
+}
+
+async function renderSts(uid,panelId){
+  const snap=await getDoc(doc(db,'stats',uid));
+  $(panelId).innerHTML=buildStsHTML(snap.exists()?snap.data():{});
+}
+
+async function renderOgr(){
+  const el=$('tOgr');ld('tOgr');
+  const q=CP.role==='admin'?query(collection(db,'users'),where('role','==','student')):query(collection(db,'users'),where('role','==','student'),where('teacherId','==',CU.uid));
+  const snap=await getDocs(q);
+  if(snap.empty){el.innerHTML='<div class="es"><div class="ic">👨‍🎓</div><p>Henüz öğrenci yok.</p></div>';return;}
+  let h='';
+  for(const ud of snap.docs){
+    const u=ud.data();
+    const ss=await getDoc(doc(db,'stats',ud.id));
+    h+=`<div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav student">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div>${CP.role==='admin'?`<button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button>`:''}</div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
+  }
+  el.innerHTML=h;
+}
+
+async function renderOgt(){
+  const el=$('tOgt');ld('tOgt');
+  const snap=await getDocs(query(collection(db,'users'),where('role','==','teacher')));
+  if(snap.empty){el.innerHTML='<div class="es"><div class="ic">👨‍🏫</div><p>Henüz öğretmen yok.</p></div>';return;}
+  let h='';
+  for(const ud of snap.docs){
+    const u=ud.data();
+    const ss=await getDoc(doc(db,'stats',ud.id));
+    h+=`<div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav teacher">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div><button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button></div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
+  }
+  el.innerHTML=h;
+}
+
+async function renderYon(){
+  const el=$('tYon');ld('tYon');
+  const snap=await getDocs(query(collection(db,'users'),where('role','!=','admin')));
+  const users=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const tMap={};users.filter(u=>u.role==='teacher').forEach(t=>tMap[t.id]=t.name);
+  el.innerHTML=`<div class="ul"><div class="ulh"><h3>👥 Kullanıcılar (${users.length})</h3><button class="btn su" onclick="openAddUser()">➕ Kullanıcı Ekle</button></div>${users.length?users.map(u=>`<div class="ur"><div class="uav ${u.role}">${ini(u.name)}</div><div class="ui"><div class="un">${u.name}</div><div class="um">@${u.username} · ${u.role==='teacher'?'Öğretmen':'Öğrenci'}${u.teacherId&&tMap[u.teacherId]?` · 👨‍🏫 ${tMap[u.teacherId]}`:''}</div></div><div class="ua"><button class="btn gh" onclick="showCred('${u.username}','${u.password}','${u.name}')">📋</button><button class="btn da" onclick="askReset('${u.id}','${u.name}')">🗑</button><button class="btn dl" onclick="delUser('${u.id}','${u.name}')">✕ Sil</button></div></div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--mu);font-weight:600;">Kullanıcı yok.</div>'}</div>`;
+}
+
+window.openAddUser=async()=>{
+  $('nn').value='';$('nu').value='';$('np').value='';$('nr').value='student';toggleTA();
+  const snap=await getDocs(query(collection(db,'users'),where('role','==','teacher')));
+  const sel=$('nt');sel.innerHTML='<option value="">-- Öğretmen seç --</option>';
+  snap.docs.forEach(d=>{const t=d.data();sel.innerHTML+=`<option value="${d.id}">${t.name}</option>`;});
+  oModal('mAdd');
+};
+
+window.toggleTA=()=>{$('tag').style.display=$('nr').value==='student'?'block':'none';};
+
+window.saveUser=async()=>{
+  const name=$('nn').value.trim(),uname=$('nu').value.trim().toLowerCase(),pass=$('np').value.trim(),role=$('nr').value,tid=$('nt').value;
+  if(!name||!uname||!pass){alert('Tüm alanları doldurun.');return;}
+  const btn=$('sbtn');btn.disabled=true;btn.textContent='Kaydediliyor...';
+  try{
+    const email=uname+'@dijital-defter.app';
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await setDoc(doc(db,'users',cred.user.uid),{name,username:uname,password:pass,role,teacherId:role==='student'?(tid||null):null,createdAt:serverTimestamp()});
+    await signInWithEmailAndPassword(auth,CU.email,CP.password);
+    closeModal('mAdd');await renderYon();
+    alert(`✅ ${name} eklendi.\nKullanıcı: ${uname}\nŞifre: ${pass}`);
+  }catch(e){alert('Hata: '+e.message);}
+  btn.disabled=false;btn.textContent='Kaydet';
+};
+
+window.delUser=async(uid,name)=>{
+  if(!confirm(`"${name}" silinsin mi?`))return;
+  await deleteDoc(doc(db,'users',uid));
+  await deleteDoc(doc(db,'stats',uid)).catch(()=>{});
+  await renderYon();
+};
+
+window.showCred=(u,p,name)=>{
+  cpTxt=`Kullanıcı: ${u}\nŞifre: ${p}`;
+  $('credbox').innerHTML=`<b>Ad:</b> ${name}<br><b>Kullanıcı:</b> ${u}<br><b>Şifre:</b> ${p}`;
+  oModal('mCred');
+};
+window.doCopy=()=>navigator.clipboard.writeText(cpTxt).then(()=>alert('Kopyalandı!')).catch(()=>alert(cpTxt));
+
+window.askReset=(uid,name)=>{rUID=uid;$('rtxt').textContent=`"${name}" adlı kullanıcının tüm istatistikleri silinecek. Emin misiniz?`;oModal('mReset');};
+window.doReset=async()=>{
+  if(!rUID)return;
+  await deleteDoc(doc(db,'stats',rUID)).catch(()=>{});
+  closeModal('mReset');rUID=null;
+  const at=document.querySelector('.tb.on')?.dataset?.tab;
+  if(at==='tOgr')await renderOgr();
+  if(at==='tOgt')await renderOgt();
+  if(at==='tBen'){ld('tBen');await renderSts(CU.uid,'tBen');}
+  await renderFas();
+};
+
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+// İlk kurulum: Admin hesabı
+(async()=>{
+  if(localStorage.getItem('dd_ok'))return;
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,'admin@dijital-defter.app','admin');
+    await setDoc(doc(db,'users',cred.user.uid),{name:'Admin',username:'admin',password:'admin',role:'admin',teacherId:null,createdAt:serverTimestamp()});
+    localStorage.setItem('dd_ok','1');
+    await signOut(auth);
+  }catch(e){
+    if(e.code==='auth/email-already-in-use')localStorage.setItem('dd_ok','1');
+    await signOut(auth).catch(()=>{});
+  }
+})();
+</script>
+
+<!-- Fasikül iframe overlay -->
+<div id="frmOverlay">
+  <div id="frmBar">
+    <button onclick="closeFrame()">← Ana Sayfa</button>
+    <span class="ftitle" id="frmTitle"></span>
+  </div>
+  <iframe id="fasikülFrame" src="" allowfullscreen></iframe>
+</div>
+
+</body>
+</html>
