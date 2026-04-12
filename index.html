@@ -188,6 +188,35 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-he
     <div class="mda"><button class="btn gh" onclick="closeModal('mCred')">Kapat</button><button class="btn pr" onclick="doCopy()">📋 Kopyala</button></div>
   </div>
 </div>
+<div class="mo" id="mFasAssign">
+  <div class="md" style="max-width:520px;">
+    <h3>📚 Fasikül Erişimi</h3>
+    <p style="font-size:13px;color:var(--mu);font-weight:600;margin-bottom:16px;" id="fasAssignTxt"></p>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn gh" onclick="fasToggleAll(true)">✅ Tümünü Seç</button>
+      <button class="btn gh" onclick="fasToggleAll(false)">⬜ Tümünü Kaldır</button>
+    </div>
+    <div id="fasCheckList" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding-right:4px;"></div>
+    <div class="mda">
+      <button class="btn gh" onclick="closeModal('mFasAssign')">İptal</button>
+      <button class="btn pr" id="fasAssignBtn" onclick="doFasAssign()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+<div class="mo" id="mAssign">
+  <div class="md">
+    <h3>👨‍🏫 Öğretmen Ata</h3>
+    <p style="font-size:13px;color:var(--mu);font-weight:600;margin-bottom:16px;" id="assignTxt"></p>
+    <div class="fg">
+      <label>Öğretmen</label>
+      <select id="assignSel"><option value="">-- Öğretmen seç --</option></select>
+    </div>
+    <div class="mda">
+      <button class="btn gh" onclick="closeModal('mAssign')">İptal</button>
+      <button class="btn pr" id="assignBtn" onclick="doAssign()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -205,6 +234,7 @@ const FASIKUL=[
   {id:'f5',t:'Kâr-Zarar-Karışım Hareket-İşçi Problemleri',s:'Matematik 10. Sınıf',f:'kr_akademi_5.html',c:'green',n:'5'},
   {id:'f6',t:'Hareket',s:'Fizik 10. Sınıf',f:'duzgun-dogrusal-hareket.html',c:'orange',n:'6'},
   {id:'f7',t:'İş-Güç-Enerji',s:'Fizik 10. Sınıf',f:'is-guc-enerji.html',c:'green',n:'7'},
+  {id:'f8',t:'Temel_Matematik',s:'Matematik 10. Sınıf',f:'Temel_Matematik.html',c:'orange',n:'8'}
 ];
 
 let CU=null,CP=null,rUID=null,cpTxt='';
@@ -315,10 +345,13 @@ function buildTabs(){
 
 async function renderFas(){
   const g=$('fgrid');g.innerHTML='<div class="ld"><div class="sp"></div>Yükleniyor...</div>';
-  const snap=await getDoc(doc(db,'stats',CU.uid));
-  const us=snap.exists()?snap.data():{};
+  const [statsSnap,userSnap]=await Promise.all([getDoc(doc(db,'stats',CU.uid)),getDoc(doc(db,'users',CU.uid))]);
+  const us=statsSnap.exists()?statsSnap.data():{};
+  const allowed=CP.role==='admin'?null:(userSnap.exists()&&userSnap.data().allowedFasikul?userSnap.data().allowedFasikul:null);
+  const visibleFas=allowed?FASIKUL.filter(f=>allowed.includes(f.id)):FASIKUL;
   g.innerHTML='';
-  FASIKUL.forEach(f=>{
+  if(visibleFas.length===0){g.innerHTML='<div class="es" style="grid-column:1/-1"><div class="ic">📚</div><p>Erişebileceğiniz fasikül bulunmuyor.</p></div>';return;}
+  visibleFas.forEach(f=>{
     const fs=us[f.id]||{},c=fs.correct||0,w=fs.wrong||0,m=fs.minutes||0;
     const card=document.createElement('div');
     card.className='fc';
@@ -418,7 +451,7 @@ async function renderYon(){
   const snap=await getDocs(query(collection(db,'users'),where('role','!=','admin')));
   const users=snap.docs.map(d=>({id:d.id,...d.data()}));
   const tMap={};users.filter(u=>u.role==='teacher').forEach(t=>tMap[t.id]=t.name);
-  el.innerHTML=`<div class="ul"><div class="ulh"><h3>👥 Kullanıcılar (${users.length})</h3><button class="btn su" onclick="openAddUser()">➕ Kullanıcı Ekle</button></div>${users.length?users.map(u=>`<div class="ur"><div class="uav ${u.role}">${ini(u.name)}</div><div class="ui"><div class="un">${u.name}</div><div class="um">@${u.username} · ${u.role==='teacher'?'Öğretmen':'Öğrenci'}${u.teacherId&&tMap[u.teacherId]?` · 👨‍🏫 ${tMap[u.teacherId]}`:''}</div></div><div class="ua"><button class="btn gh" onclick="showCred('${u.username}','${u.password}','${u.name}')">📋</button><button class="btn da" onclick="askReset('${u.id}','${u.name}')">🗑</button><button class="btn dl" onclick="delUser('${u.id}','${u.name}')">✕ Sil</button></div></div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--mu);font-weight:600;">Kullanıcı yok.</div>'}</div>`;
+  el.innerHTML=`<div class="ul"><div class="ulh"><h3>👥 Kullanıcılar (${users.length})</h3><button class="btn su" onclick="openAddUser()">➕ Kullanıcı Ekle</button></div>${users.length?users.map(u=>{const fasCount=u.allowedFasikul?u.allowedFasikul.length:FASIKUL.length;return`<div class="ur"><div class="uav ${u.role}">${ini(u.name)}</div><div class="ui"><div class="un">${u.name}</div><div class="um">@${u.username} · ${u.role==='teacher'?'Öğretmen':'Öğrenci'}${u.teacherId&&tMap[u.teacherId]?` · 👨‍🏫 ${tMap[u.teacherId]}`:u.role==='student'?' · <span style="color:var(--r)">Öğretmen atanmadı</span>':''} · <span style="color:#0891b2;">📚 ${fasCount}/${FASIKUL.length} fasikül</span></div></div><div class="ua"><button class="btn gh" onclick="showCred('${u.username}','${u.password}','${u.name}')">📋</button>${u.role==='student'?`<button class="btn pr" onclick="openAssign('${u.id}','${u.name}','${u.teacherId||''}')">👨‍🏫 Ata</button>`:''}<button class="btn" style="background:#0891b2;color:#fff;" onclick="openFasAssign('${u.id}','${u.name}')">📚 Fasiküller</button><button class="btn da" onclick="askReset('${u.id}','${u.name}')">🗑</button><button class="btn dl" onclick="delUser('${u.id}','${u.name}')">✕ Sil</button></div></div>`;}).join(''):'<div style="padding:20px;text-align:center;color:var(--mu);font-weight:600;">Kullanıcı yok.</div>'}</div>`;
 }
 
 window.openAddUser=async()=>{
@@ -462,6 +495,68 @@ window.showCred=(u,p,name)=>{
   oModal('mCred');
 };
 window.doCopy=()=>navigator.clipboard.writeText(cpTxt).then(()=>alert('Kopyalandı!')).catch(()=>alert(cpTxt));
+
+let fasAssignUID=null;
+window.openFasAssign=async(uid,name)=>{
+  fasAssignUID=uid;
+  $('fasAssignTxt').textContent=`"${name}" için erişilebilir fasikülleri seçin. Hiç seçilmezse tüm fasiküllere erişebilir.`;
+  const snap=await getDoc(doc(db,'users',uid));
+  const allowed=snap.exists()&&snap.data().allowedFasikul?snap.data().allowedFasikul:null;
+  const list=$('fasCheckList');
+  list.innerHTML=FASIKUL.map(f=>{
+    const checked=!allowed||allowed.includes(f.id);
+    return `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--pb);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;">
+      <input type="checkbox" id="fc_${f.id}" value="${f.id}" ${checked?'checked':''} style="width:16px;height:16px;accent-color:var(--p);cursor:pointer;">
+      <span style="flex:1;">${f.n}. ${f.t}</span>
+      <span style="font-size:11px;color:var(--mu);font-weight:600;">${f.s}</span>
+    </label>`;
+  }).join('');
+  oModal('mFasAssign');
+};
+window.fasToggleAll=(val)=>{
+  FASIKUL.forEach(f=>{const cb=$('fc_'+f.id);if(cb)cb.checked=val;});
+};
+window.doFasAssign=async()=>{
+  if(!fasAssignUID)return;
+  const selected=FASIKUL.map(f=>$('fc_'+f.id)).filter(cb=>cb&&cb.checked).map(cb=>cb.value);
+  const allSelected=selected.length===FASIKUL.length;
+  const btn=$('fasAssignBtn');
+  btn.disabled=true;btn.textContent='Kaydediliyor...';
+  try{
+    await setDoc(doc(db,'users',fasAssignUID),{allowedFasikul:allSelected?null:selected},{merge:true});
+    closeModal('mFasAssign');
+    await renderYon();
+  }catch(e){alert('Hata: '+e.message);}
+  btn.disabled=false;btn.textContent='💾 Kaydet';
+  fasAssignUID=null;
+};
+
+let assignUID=null;
+window.openAssign=async(uid,name,currentTid)=>{
+  assignUID=uid;
+  $('assignTxt').textContent=`"${name}" adlı öğrenciye öğretmen atanıyor.`;
+  const snap=await getDocs(query(collection(db,'users'),where('role','==','teacher')));
+  const sel=$('assignSel');
+  sel.innerHTML='<option value="">-- Öğretmen seçin (boş = kaldır) --</option>';
+  snap.docs.forEach(d=>{
+    const t=d.data();
+    sel.innerHTML+=`<option value="${d.id}"${d.id===currentTid?' selected':''}>${t.name} (@${t.username})</option>`;
+  });
+  oModal('mAssign');
+};
+window.doAssign=async()=>{
+  if(!assignUID)return;
+  const tid=$('assignSel').value||null;
+  const btn=$('assignBtn');
+  btn.disabled=true;btn.textContent='Kaydediliyor...';
+  try{
+    await setDoc(doc(db,'users',assignUID),{teacherId:tid},{merge:true});
+    closeModal('mAssign');
+    await renderYon();
+  }catch(e){alert('Hata: '+e.message);}
+  btn.disabled=false;btn.textContent='💾 Kaydet';
+  assignUID=null;
+};
 
 window.askReset=(uid,name)=>{rUID=uid;$('rtxt').textContent=`"${name}" adlı kullanıcının tüm istatistikleri silinecek. Emin misiniz?`;oModal('mReset');};
 window.doReset=async()=>{
