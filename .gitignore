@@ -11,3 +11,6 @@
 
 # Karne ham dosyaları
 karne/
+
+# Local Netlify folder
+.netlify
