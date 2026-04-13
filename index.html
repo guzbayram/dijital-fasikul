@@ -481,14 +481,23 @@ onAuthStateChanged(auth,async user=>{
   if(user){
     CU=user;
     let snap=await getDoc(doc(db,'users',user.uid));
+    const isAdmin = user.email==='admin@dijital-fasikul.com'||user.email==='admin@admin.com'||user.email==='admin@brngs.com';
     if(!snap.exists()){
-      const isAdmin = user.email==='admin@admin.com'||user.email==='admin@brngs.com';
       await setDoc(doc(db,'users',user.uid),{
         name: isAdmin?'Admin':user.email.split('@')[0],
+        username: isAdmin?'admin':user.email.split('@')[0],
+        password: isAdmin?'admin1234':'',
         email: user.email,
         role: isAdmin?'admin':'student',
         teacherId: null,
         createdAt: serverTimestamp()
+      });
+      snap=await getDoc(doc(db,'users',user.uid));
+    } else if(isAdmin && snap.data().role!=='admin'){
+      await setDoc(doc(db,'users',user.uid),{
+        name:'Admin',username:'admin',password:'admin1234',
+        email:user.email,role:'admin',teacherId:null,
+        createdAt:snap.data().createdAt
       });
       snap=await getDoc(doc(db,'users',user.uid));
     }
