@@ -526,7 +526,7 @@
 
 <!-- HEADER -->
 <div id="header">
-  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-right:12px;">🏠 Ana Sayfa</button>
+  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-right:12px;">🏠 Ana Sayfa</button>
   <div class="logo" onclick="showScreen('dashboard')" style="cursor:pointer;">
     <span class="logo-icon">⚡</span> Bilge Fizikçiler
   </div>
@@ -1940,6 +1940,9 @@ function toggleTheme() {
 // ======== INIT ========
 function initApp() {
   try {
+    document.body.classList.add('light');
+    const tb = document.querySelector('.theme-btn');
+    if (tb) tb.textContent = '☀️';
     updateDashboard();
     startTimer();
   } catch(e) {

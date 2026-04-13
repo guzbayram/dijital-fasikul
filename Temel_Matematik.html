@@ -386,12 +386,110 @@
   .cat-accordion-body { overflow: hidden; transition: max-height 0.28s cubic-bezier(.4,0,.2,1); }
 
 
+
+
+  /* ── Q-PANEL KESİN DÜZELTMESİ ── */
+  #q-panel {
+    box-sizing: border-box;
+    width: 100%;
+  }
+  #q-panel.flex {
+    display: flex !important;
+  }
+
+  /* ── MOBİL RESPONSIVE ── */
+  @media (max-width: 768px) {
+    #main-app aside {
+      width: 160px !important;
+      min-width: 160px !important;
+      padding: 10px 8px !important;
+      flex-shrink: 0 !important;
+    }
+    #main-app aside h1 {
+      font-size: 13px !important;
+      line-height: 1.2 !important;
+    }
+    #main-app aside > div:first-child p {
+      display: none !important;
+    }
+    /* q-panel: layout içinde, fixed değil */
+    #q-panel {
+      padding: 0 6px 6px 6px !important;
+    }
+    #q-panel > div {
+      border-radius: 16px !important;
+      padding: 12px !important;
+      gap: 8px !important;
+    }
+    #ans-text {
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+      align-items: center !important;
+    }
+    #q-label {
+      max-width: 100% !important;
+      font-size: 11px !important;
+      -webkit-line-clamp: 1 !important;
+    }
+    #ans-input {
+      width: 110px !important;
+      min-width: 80px !important;
+      font-size: 13px !important;
+      padding: 8px 10px !important;
+    }
+    #check-btn {
+      padding: 8px 12px !important;
+      font-size: 11px !important;
+    }
+    #show-ans-btn {
+      padding: 8px 10px !important;
+      font-size: 11px !important;
+    }
+    .acc-mcq-btn {
+      width: 38px !important;
+      height: 38px !important;
+      font-size: 13px !important;
+    }
+    /* Stats row küçült */
+    #acc-correct, #acc-wrong, #acc-total {
+      font-size: 10px !important;
+    }
+    #page-jump {
+      width: 44px !important;
+    }
+    /* Dot nav gizle mobilde */
+    #dot-nav {
+      display: none !important;
+    }
+  }
+  @media (max-width: 480px) {
+    #main-app aside {
+      width: 120px !important;
+      min-width: 120px !important;
+      padding: 8px 6px !important;
+    }
+    #main-app aside h1 {
+      font-size: 11px !important;
+    }
+  }
 </style>
 </head>
 <body class="bg-[#f8f9fc] text-on-surface overflow-hidden">
 <!-- ══ UPLOAD OVERLAY (shown first) ══ -->
+<!-- GitHub Pages'de upload ekranı gizlenir; sadece local/desktop'ta görünür -->
+<script>
+(function(){
+  if(location.hostname.endsWith('github.io')){
+    document.addEventListener('DOMContentLoaded',function(){
+      var us=document.getElementById('upload-screen');
+      if(us) us.style.display='none';
+    });
+  }
+})();
+</script>
 <div id="upload-screen" class="fixed inset-0 z-50 flex flex-col">
   <header class="h-16 flex items-center justify-between px-8 bg-primary flex-shrink-0">
+    <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-right:12px;flex-shrink:0;">🏠 Ana Sayfa</button>
     <div>
       <div class="font-extrabold text-white text-lg italic tracking-tight" style="font-family:'Manrope',sans-serif;">PDF Kanvas</div>
       <div class="text-[10px] font-black text-white/60 uppercase tracking-[.2em]">Matematik Çalışma Alanı</div>
@@ -489,12 +587,12 @@
 <button id="sb-restore-btn" onclick="PDFKV.toggleSidebar()" style="display:none;position:fixed;left:0;top:50%;transform:translateY(-50%);width:20px;height:64px;background:#503397;color:#fff;border:none;border-radius:0 10px 10px 0;cursor:pointer;align-items:center;justify-content:center;z-index:100;box-shadow:3px 0 14px rgba(80,51,151,.3);">
   <span class="material-symbols-outlined" style="font-size:14px;">menu_book</span>
 </button>
-<div class="flex h-screen w-full" id="main-app">
+<div class="flex w-full" id="main-app" style="height:100vh;overflow:hidden;">
 
   <!-- ═══ LEFT SIDEBAR ═══ -->
-  <aside class="h-full w-72 flex-shrink-0 bg-white border-r border-slate-100 p-8 flex flex-col" style="font-family:'Manrope',sans-serif;">
+  <aside class="h-full w-52 md:w-72 flex-shrink-0 bg-white border-r border-slate-100 p-4 md:p-8 flex flex-col" style="font-family:'Manrope',sans-serif;">
     <div class="mb-5">
-      <h1 class="text-2xl font-extrabold tracking-tight text-primary">Akademik Portal</h1>
+      <h1 class="text-lg md:text-2xl font-extrabold tracking-tight text-primary">Akademik Portal</h1>
       <p class="text-[10px] text-slate-400 tracking-[0.2em] mt-1 font-bold">PWA SÜRÜMÜ</p>
     </div>
 
@@ -525,7 +623,7 @@
   </aside>
 
   <!-- ═══ MAIN CONTENT ═══ -->
-  <main class="flex-grow flex flex-col relative overflow-hidden bg-white">
+  <main class="flex-grow flex flex-col relative bg-white" style="overflow:visible;min-width:0;">
 
     <!-- Tool Row (drawing tools) -->
     <div class="px-6 py-3 flex items-center justify-between flex-shrink-0 border-b border-slate-50">
@@ -560,7 +658,7 @@
       </div>
     </div>
 
-    <div id="viewer-section" class="hidden flex-1 flex-col overflow-hidden min-h-0 relative">
+    <div id="viewer-section" class="hidden flex-col min-h-0 relative" style="flex:1 1 0%;overflow:hidden;">
 
     <!-- ── KONU KARTLARI PANEL (grain overlay) ── -->
     <div id="konu-kartlari-panel" class="hidden">
@@ -588,7 +686,7 @@
         position:absolute; top:0; left:0; width:100%; height:100%;
         display:flex; flex-direction:column; align-items:center;
         overflow:auto; scrollbar-width:none; -ms-overflow-style:none;
-        padding: 24px 40px 320px 40px; box-sizing:border-box;
+        padding: 24px 40px 40px 40px; box-sizing:border-box;
       ">
         <style>#zoom-wrapper::-webkit-scrollbar{display:none;}</style>
         <!-- PDF Page -->
@@ -602,8 +700,8 @@
 
     </div><!-- /viewer-section -->
     <!-- ═══ FIXED BOTTOM: PDFKV Answer Control Center ═══ -->
-    <div id="q-panel" class="hidden fixed bottom-0 z-30 justify-center pb-8" style="left:calc(288px + 40px);right:40px;">
-      <div class="w-full max-w-6xl bg-white rounded-[2.5rem] px-8 py-6 shadow-[0_-10px_40px_rgba(0,0,0,0.02),0_20px_60px_rgba(0,0,0,0.08)] border border-slate-100 flex flex-col gap-5">
+    <div id="q-panel" class="hidden z-30 justify-center pb-2 pt-0 flex-shrink-0" style="padding:0 8px 8px 8px;">
+      <div class="w-full max-w-6xl bg-white rounded-[1.5rem] md:rounded-[2.5rem] px-4 md:px-8 py-4 md:py-6 shadow-[0_-10px_40px_rgba(0,0,0,0.02),0_20px_60px_rgba(0,0,0,0.08)] border border-slate-100 flex flex-col gap-3 md:gap-5">
         <!-- R2 -->
         <div class="flex flex-col gap-3">
           <!-- MCQ options (shown for MCQ type) -->
@@ -615,7 +713,7 @@
             <button class="acc-mcq-btn w-14 h-14 rounded-full border-2 border-slate-100 flex items-center justify-center font-extrabold text-lg text-slate-400 hover:border-primary hover:text-primary transition-all" data-opt="E" onclick="PDFKV.selectMcq(this)">E</button>
           </div>
           <!-- Text answer row -->
-          <div id="ans-text" class="hidden w-full" style="display:none; align-items:center; gap:12px; flex-wrap:nowrap;">
+          <div id="ans-text" class="hidden w-full" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
             <!-- Question number badge -->
             <div id="q-num" style="flex-shrink:0; width:32px; height:32px; border-radius:50%; background:#503397; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:11px;">S1</div>
             <!-- Question text -->
@@ -624,7 +722,7 @@
             <span style="flex-shrink:0; color:#94a3b8; font-weight:700; font-size:18px;">=</span>
             <!-- Input -->
             <input id="ans-input" type="text" placeholder="Cevabınızı yazın..."
-              style="flex-shrink:0; width:200px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:14px; padding:10px 16px; font-size:14px; font-weight:500; color:#1e293b; outline:none; transition:border-color .2s, background .2s;"
+              style="flex-shrink:0; width:120px; max-width:200px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:14px; padding:10px 16px; font-size:14px; font-weight:500; color:#1e293b; outline:none; transition:border-color .2s, background .2s;"
               autocomplete="off"
               onfocus="this.style.borderColor='#503397';this.style.background='#fff';"
               onblur="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc';"
@@ -2476,7 +2574,7 @@ var PDFKV = (function(){
 
   /* ── 1. PDF OTOMATİK YÜKLEME (Firebase'den bağımsız) ── */
   try {
-    const PDF_URL = window.location.origin + '/Temel_Matematik.pdf';
+    const PDF_URL = 'https://lively-mousse-c4b810.netlify.app/temel_matematik.pdf';
     const res = await fetch(PDF_URL);
     if (res.ok) {
       const buf = await res.arrayBuffer();
@@ -2486,12 +2584,12 @@ var PDFKV = (function(){
 
   /* ── 2. FİREBASE İSTATİSTİK KAYIT ── */
   const FB_CFG = {
-    apiKey: "AIzaSyAHpqHca8a4DHsa5rbtnWPJ0KRUPCLBRdg",
-    authDomain: "dijital-defter-50c06.firebaseapp.com",
-    projectId: "dijital-defter-50c06",
-    storageBucket: "dijital-defter-50c06.firebasestorage.app",
-    messagingSenderId: "989908182887",
-    appId: "1:989908182887:web:eec6c1ad6c9cf09dbfb1c2"
+    apiKey: "AIzaSyCfkt5Pf82o2InXvcqRdkHiXEkD-18_u0M",
+    authDomain: "dijital-fasikul.firebaseapp.com",
+    projectId: "dijital-fasikul",
+    storageBucket: "dijital-fasikul.firebasestorage.app",
+    messagingSenderId: "127715156463",
+    appId: "1:127715156463:web:b69b4dc29b6762dc69561a"
   };
 
   try {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark">
+<html lang="tr" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -277,8 +277,8 @@ footer span { color:var(--accent); font-weight:700; }
 <body>
 
 <header>
-  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(0,0,0,0.15);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;position:absolute;top:12px;left:12px;z-index:99;">🏠 Ana Sayfa</button>
-  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Karanlık Mod</button>
+  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;position:absolute;top:12px;left:12px;z-index:99;">🏠 Ana Sayfa</button>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️ Aydınlık Mod</button>
   <div class="badge">TYT · AYT · 11. Sınıf · Fizik</div>
   <h1>İş – Güç – Enerji</h1>
   <p>Formüller, interaktif simülasyon ve 50 soruluk test</p>
@@ -610,7 +610,7 @@ footer span { color:var(--accent); font-weight:700; }
 const G = 10;
 
 // ========== TEMA ==========
-let isDark = true;
+let isDark = false;
 function toggleTheme() {
   isDark = !isDark;
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');

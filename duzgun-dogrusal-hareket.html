@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark">
+<html lang="tr" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,6 +34,15 @@
     --accent5: #c9302a;
     --text: #151926;
     --muted: #5a6280;
+  }
+  [data-theme="light"] header {
+    background: linear-gradient(135deg, #e8edf5 0%, #f2f4fb 50%, #eaecf8 100%);
+  }
+  [data-theme="light"] header h1 {
+    background: linear-gradient(135deg, #1a6fd4, #1a8a3a, #7c3abf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   body { transition: background var(--trans), color var(--trans); }
   .theme-btn {
@@ -251,8 +260,8 @@
 <body>
 
 <header>
-  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(0,0,0,0.15);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;position:absolute;top:12px;left:12px;z-index:99;">🏠 Ana Sayfa</button>
-  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Aydınlık</button>
+  <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;position:absolute;top:12px;left:12px;z-index:99;">🏠 Ana Sayfa</button>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙 Karanlık</button>
   <div class="header-badge">AYT · 11. Sınıf · Fizik</div>
   <h1>Düzgün Doğrusal<br>Hareket</h1>
   <p>Konum, hız, ivme ve grafikleri — interaktif olarak öğren</p>
@@ -1137,7 +1146,7 @@ document.getElementById('motionLabel').innerHTML =
   </div>`;
 
 // ===== DARK/LIGHT TOGGLE =====
-var _dark = true;
+var _dark = false;
 function toggleTheme() {
   _dark = !_dark;
   document.documentElement.setAttribute('data-theme', _dark ? 'dark' : 'light');

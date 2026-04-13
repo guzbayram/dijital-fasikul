@@ -5,120 +5,256 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#4a2d9c">
 <title>BrnGz Akademi</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
-:root{--p:#6B4FBB;--pd:#4a2f99;--pl:#9b7de0;--pb:#f0ebfa;--o:#f4913a;--od:#e07020;--g:#16a34a;--r:#dc2626;--bg:#f5f3ff;--card:#fff;--tx:#1e1340;--mu:#6b7280;--br:#e0d9f5;}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;display:inline-block;line-height:1;text-transform:none;letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;}
+:root{
+  --p:#461599;--pd:#3a1180;--pl:#6c45c0;--pb:#eaddff;
+  --o:#f4913a;--od:#e07020;--g:#16a34a;--r:#dc2626;
+  --bg:#fef7ff;--surface:#fef7ff;--s-low:#f8f1fc;--s-cnt:#f2ebf7;--s-high:#ede6f1;--s-highest:#e7e0eb;--s-lowest:#ffffff;
+  --card:#fff;--tx:#1d1a22;--mu:#494453;--br:#cbc3d5;
+  --primary-fixed:#eaddff;--primary-fixed-dim:#d1bcff;
+  --sec:#655687;--sec-cnt:#d8c6fe;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
 .scr{display:none;min-height:100vh;}
 .scr.on{display:flex;flex-direction:column;}
-#sLogin{align-items:center;justify-content:center;background:linear-gradient(135deg,#2d1b69,#4a2f99,#6B4FBB);position:relative;overflow:hidden;}
-#sLogin::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:rgba(255,255,255,.04);top:-200px;right:-150px;}
-#sLogin::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(244,145,58,.08);bottom:-100px;left:-100px;}
-.lbox{background:rgba(255,255,255,.97);border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.3);position:relative;z-index:1;animation:fu .5s ease both;}
+
+/* ── Stat Cards ── */
+.scards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px;max-width:1280px;margin-left:auto;margin-right:auto;}
+.fscards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:16px 20px;}
+@media(max-width:700px){.scards{grid-template-columns:repeat(3,1fr);}.fscards{grid-template-columns:repeat(3,1fr);}}
+.sc{background:var(--s-lowest);border-radius:12px;padding:16px 12px;text-align:center;box-shadow:0 8px 24px rgba(70,21,153,0.05);transition:background .25s;}
+.sc:hover{background:var(--primary-fixed);}
+.sc .v{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;line-height:1;margin-bottom:4px;}
+.sc .l{font-size:9px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;}
+.sc.p .v{color:var(--p);}.sc.g .v{color:#16a34a;}.sc.r .v{color:#dc2626;}.sc.o .v{color:#e07020;}
+
+/* ── Accordion Course Blocks ── */
+.dt{background:var(--s-lowest);border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:0 4px 16px rgba(70,21,153,0.04);}
+.dth{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:14px 20px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;border-radius:12px 12px 0 0;}
+.dt-body{background:var(--s-cnt);}
+.dt table{width:100%;border-collapse:collapse;font-size:12px;background:var(--s-lowest);}
+.dt th{background:var(--s-low);color:var(--p);font-family:'Inter',sans-serif;font-weight:700;padding:9px 16px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.7px;}
+.dt td{padding:10px 16px;font-weight:500;color:var(--tx);font-size:13px;}
+.dt tr{border-bottom:none;}
+.dt tr:not(:last-child) td{padding-bottom:10px;}
+.dt tbody tr:not(:last-child){margin-bottom:12px;}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;}
+.pill.g{background:#f0fdf4;color:#16a34a;}
+.pill.r{background:#fef2f2;color:#dc2626;}
+.pill.p{background:var(--pb);color:var(--p);}
+.pill.o{background:#fef3e8;color:#e07020;}
+
+/* ── Section wrapper ── */
+.sts-wrap{max-width:1024px;margin:0 auto;}
+.sts-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px;}
+.sts-user{display:flex;align-items:center;gap:10px;}
+.sts-progress-bar{height:8px;border-radius:99px;background:var(--s-highest);overflow:hidden;margin-top:6px;}
+.sts-progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--p),var(--pl));transition:width .5s ease;}
+.dt-not-started{padding:16px 20px;font-size:13px;color:var(--mu);font-weight:500;font-style:italic;}
+
+/* ── Login ── */
+#sLogin{
+  align-items:center;justify-content:center;
+  background:#f8f7ff;
+  position:relative;overflow:hidden;
+}
+#sLogin::before{
+  content:'';position:absolute;
+  width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(92,61,181,.08) 0%,transparent 70%);
+  top:-200px;right:-200px;pointer-events:none;
+}
+#sLogin::after{
+  content:'';position:absolute;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(70,21,153,.05) 0%,transparent 70%);
+  bottom:-150px;left:-150px;pointer-events:none;
+}
+.l-ring1{position:absolute;bottom:-400px;left:50%;transform:translateX(-50%);width:800px;height:800px;border-radius:50%;border:1px solid rgba(70,21,153,.12);pointer-events:none;}
+.l-ring2{position:absolute;bottom:-300px;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;border:1px solid rgba(70,21,153,.08);pointer-events:none;}
 @keyframes fu{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.llogo{text-align:center;margin-bottom:32px;}
-.lico{width:64px;height:64px;background:linear-gradient(135deg,var(--p),var(--o));border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;box-shadow:0 8px 24px rgba(107,79,187,.35);}
-.llogo h1{font-size:22px;font-weight:900;color:var(--pd);}
-.llogo p{font-size:13px;color:var(--mu);margin-top:2px;}
-.fg{margin-bottom:16px;}
-.fg label{display:block;font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
-.fg input,.fg select{width:100%;padding:12px 16px;border:2px solid var(--br);border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;color:var(--tx);background:var(--bg);outline:none;transition:border-color .2s;}
-.fg input:focus,.fg select:focus{border-color:var(--p);background:#fff;}
-.btnL{width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(107,79,187,.4);transition:all .2s;}
-.btnL:hover{transform:translateY(-1px);}
-.btnL:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.lerr{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--r);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:12px;display:none;}
-.hdr{background:linear-gradient(135deg,var(--pd),var(--p));color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(107,79,187,.3);flex-shrink:0;}
-.hdr .logo{font-size:16px;font-weight:900;flex:1;}.hdr .logo span{color:var(--o);}
-.hu{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;}
-.hav{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;}
-.hrl{background:rgba(255,255,255,.15);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
-.hrl.admin{background:rgba(244,145,58,.35);color:#fde68a;}
-.hrl.teacher{background:rgba(16,163,74,.25);color:#bbf7d0;}
-.btnO{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.btnO:hover{background:rgba(255,255,255,.25);}
-.tnav{display:flex;background:#fff;border-bottom:2px solid var(--br);padding:0 24px;gap:4px;flex-shrink:0;overflow-x:auto;}
-.tb{padding:12px 16px;border:none;background:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--mu);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;}
+.l-wrap{display:flex;flex-direction:column;align-items:center;width:100%;max-width:360px;position:relative;z-index:1;animation:fu .5s ease both;}
+.l-brand{text-align:center;margin-bottom:36px;}
+.lico{
+  width:72px;height:72px;
+  background:linear-gradient(135deg,#5c3db5,#4a2d9c);
+  border-radius:20px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:32px;margin-bottom:16px;
+  box-shadow:0 8px 24px rgba(70,21,153,.28);
+  transform:rotate(3deg);
+}
+.l-brand h1{font-size:26px;font-weight:800;color:#1a162d;font-family:'Manrope',sans-serif;letter-spacing:-.02em;}
+.l-brand p{font-size:13px;color:#47435e;margin-top:4px;font-weight:500;letter-spacing:.02em;}
+.lbox{
+  background:#fff;border-radius:32px;
+  padding:40px 36px;width:100%;
+  box-shadow:0 20px 50px rgba(92,61,181,.08);
+}
+.fg{margin-bottom:20px;}
+.fg label{display:block;font-size:11px;font-weight:700;color:#47435e;text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px;margin-left:4px;}
+.fg .fi-wrap{position:relative;}
+.fg .fi-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#78728d;font-size:18px;pointer-events:none;line-height:1;}
+.fg input{
+  width:100%;padding:14px 14px 14px 44px;
+  border:none;border-radius:16px;
+  font-family:'Inter',sans-serif;font-size:15px;font-weight:500;
+  color:#1a162d;background:#e2dbf7;outline:none;
+  transition:box-shadow .2s,background .2s;
+}
+.fg input:focus{box-shadow:0 0 0 2px rgba(70,21,153,.25);background:#ddd5f5;}
+.fg .fi-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#78728d;padding:4px;line-height:1;transition:color .2s;}
+.fg .fi-eye:hover{color:#5c3db5;}
+.l-forgot{display:flex;justify-content:flex-end;margin-top:8px;}
+.l-forgot a{font-size:12px;font-weight:700;color:#5c3db5;text-decoration:none;opacity:.85;transition:opacity .2s;}
+.l-forgot a:hover{opacity:1;text-decoration:underline;text-underline-offset:3px;}
+.btnL{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,#5c3db5,#4a2d9c);
+  color:#fff;border:none;border-radius:99px;
+  font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;
+  cursor:pointer;margin-top:4px;
+  box-shadow:0 4px 16px rgba(70,21,153,.35);
+  transition:all .2s;letter-spacing:.01em;
+}
+.btnL:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(70,21,153,.45);}
+.btnL:active{transform:scale(.98);}
+.btnL:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none;}
+.lerr{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--r);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:14px;display:none;}
+.l-footer{margin-top:28px;text-align:center;font-size:13px;color:#47435e;}
+.l-footer a{color:#5c3db5;font-weight:700;margin-left:4px;text-decoration:none;}
+.l-footer a:hover{text-decoration:underline;text-underline-offset:3px;}
+/* modal fg input override */
+.md .fg input,.md .fg select{padding:12px 16px;border-radius:10px;background:var(--s-highest);color:var(--tx);}
+
+/* ── Header ── */
+.hdr{
+  background:var(--surface);
+  padding:0;height:56px;
+  display:flex;align-items:center;
+  flex-shrink:0;
+  border-bottom:1px solid rgba(203,195,213,.28);
+  position:sticky;top:0;z-index:200;
+}
+.hdr-inner{
+  width:100%;max-width:1280px;
+  margin:0 auto;padding:0 28px;
+  display:flex;align-items:center;gap:12px;
+}
+.hdr .logo{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;flex:1;color:var(--p);white-space:nowrap;}
+.hdr .logo span{color:var(--o);}
+.hu{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
+.hav{width:34px;height:34px;border-radius:50%;background:var(--sec-cnt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--p);border:2px solid var(--pb);flex-shrink:0;}
+.hrl{border-radius:99px;padding:3px 11px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;}
+.hrl.student{background:var(--pb);color:var(--p);}
+.hrl.admin{background:#fef3e8;color:var(--od);}
+.hrl.teacher{background:#f0fdf4;color:#16a34a;}
+.btnO{background:transparent;border:1px solid rgba(203,195,213,.6);color:var(--p);border-radius:99px;padding:6px 14px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;white-space:nowrap;}
+.btnO:hover{background:var(--pb);}
+
+/* ── Tab Nav ── */
+.tnav-wrap{
+  background:var(--surface);
+  border-bottom:1px solid rgba(203,195,213,.35);
+  flex-shrink:0;
+  overflow-x:auto;
+}
+.tnav-wrap::-webkit-scrollbar{display:none;}
+.tnav{
+  width:100%;
+  padding:0 28px;
+  display:flex;gap:24px;
+  justify-content:center;
+}
+.tb{padding:13px 0;border:none;background:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--mu);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;letter-spacing:.01em;}
 .tb:hover{color:var(--p);}
 .tb.on{color:var(--p);border-bottom-color:var(--p);}
-.ca{flex:1;overflow-y:auto;padding:24px;background:var(--bg);}
+
+/* ── Content Area ── */
+.ca{flex:1;overflow-y:auto;padding:36px 28px;background:var(--s-low);}
+.ca-inner{max-width:1280px;margin:0 auto;}
 .tp{display:none;}.tp.on{display:block;}
-.stit{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:12px;}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,240px));gap:14px;margin-bottom:32px;max-width:1140px;margin-left:auto;margin-right:auto;justify-content:center;}
-.fc{background:var(--card);border:1.5px solid var(--br);border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;gap:8px;transition:all .2s;box-shadow:0 4px 24px rgba(107,79,187,.12);cursor:pointer;}
-.fc:hover{transform:translateY(-3px);border-color:var(--pl);box-shadow:0 8px 32px rgba(107,79,187,.18);}
-.fnum{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;margin-bottom:4px;}
-.fnum.purple{background:#ede8fb;color:var(--p);}
+.stit{font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--mu);margin-bottom:16px;}
+
+/* ── Fasikül Grid ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin-bottom:32px;max-width:1280px;margin-left:auto;margin-right:auto;}
+@media(max-width:600px){.fgrid{grid-template-columns:1fr 1fr;gap:12px;}}
+.fc{background:var(--s-lowest);border-radius:14px;padding:22px;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;box-shadow:0 4px 16px rgba(70,21,153,.05);cursor:pointer;}
+.fc:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(70,21,153,.12);}
+.fc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
+.fnum{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;font-family:'Manrope',sans-serif;flex-shrink:0;}
+.fnum.purple{background:rgba(216,198,254,.35);color:var(--p);}
 .fnum.orange{background:#fef3e8;color:var(--od);}
-.fnum.green{background:#f0fdf4;color:var(--g);}
+.fnum.green{background:#f0fdf4;color:#16a34a;}
 .fnum.blue{background:#eff6ff;color:#2563eb;}
 .fnum.teal{background:#ecfeff;color:#0891b2;}
 .fnum.rose{background:#fff1f2;color:#e11d48;}
 .fnum.amber{background:#fffbeb;color:#d97706;}
-.ftit{font-size:14px;font-weight:800;line-height:1.3;overflow-wrap:break-word;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.fsub{font-size:11px;color:var(--mu);font-weight:600;}
-.fst{margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;}
-.fs{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;}
-.fs.c{background:#f0fdf4;color:var(--g);}
-.fs.w{background:#fef2f2;color:var(--r);}
-.fs.t{background:var(--pb);color:var(--p);}
-.fs.n{background:var(--pb);color:var(--p);}
-.scards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;max-width:860px;margin-left:auto;margin-right:auto;}
-.fscards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:16px;}@media(max-width:700px){.fscards{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:700px){.scards{grid-template-columns:repeat(3,1fr);}}
-.sc{background:var(--card);border:1.5px solid var(--br);border-radius:14px;padding:16px;text-align:center;}
-.sc .v{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px;}
-.sc .l{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;}
-.sc.p .v{color:var(--p);}.sc.g .v{color:var(--g);}.sc.r .v{color:var(--r);}.sc.o .v{color:var(--od);}
-.dt{background:var(--card);border:1.5px solid var(--br);border-radius:16px;overflow:hidden;margin-bottom:20px;}
-.dth{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:12px 18px;font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
-.dt table{width:100%;border-collapse:collapse;font-size:12px;}
-.dt th{background:var(--pb);color:var(--pd);font-weight:800;padding:8px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
-.dt td{padding:9px 14px;border-bottom:1px solid var(--br);font-weight:600;color:var(--tx);}
-.dt tr:last-child td{border-bottom:none;}
-.dt tr:hover td{background:var(--pb);}
-.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
-.pill.g{background:#f0fdf4;color:var(--g);}
-.pill.r{background:#fef2f2;color:var(--r);}
-.pill.p{background:var(--pb);color:var(--p);}
-.pill.o{background:#fef3e8;color:var(--od);}
-.ul{background:var(--card);border:1.5px solid var(--br);border-radius:16px;overflow:hidden;margin-bottom:20px;}
-.ulh{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
-.ulh h3{font-size:14px;font-weight:800;}
-.btn{border:none;border-radius:8px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.fc-badge{padding:3px 10px;border-radius:99px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.fc-badge.started{background:#d1fae5;color:#065f46;}
+.fc-badge.new{background:var(--s-high);color:var(--mu);}
+.fc-seq{font-size:10px;font-weight:700;color:rgba(70,21,153,.5);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.ftit{font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;line-height:1.35;color:var(--tx);margin-bottom:12px;overflow-wrap:break-word;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.fsub{font-size:12px;color:var(--mu);font-weight:500;}
+.fc-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px;}
+.fc-meta-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--mu);}
+.fc-footer{margin-top:18px;}
+.fc-progress-track{width:100%;height:8px;background:var(--s-high);border-radius:99px;overflow:hidden;margin-bottom:12px;}
+.fc-progress-fill{height:100%;border-radius:99px;background:var(--p);transition:width .5s ease;}
+.fc-progress-fill.partial{background:linear-gradient(90deg,var(--p),var(--pl));}
+.fc-progress-fill.none{background:var(--s-highest);width:100%!important;}
+.fc-btn{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(203,195,213,.4);background:transparent;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;}
+.fc-btn:hover{background:var(--p);color:#fff;border-color:var(--p);}
+.fst{display:none;}
+.fs{display:none;}
+
+/* ── User List (Yönetim) ── */
+.ul{background:var(--s-lowest);border-radius:16px;overflow:hidden;margin-bottom:20px;box-shadow:0 4px 16px rgba(70,21,153,.04);}
+.ulh{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;border-radius:16px 16px 0 0;}
+.ulh h3{font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;}
+.btn{border:none;border-radius:8px;padding:7px 14px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
 .btn:hover{opacity:.85;}
-.btn.pr{background:var(--p);color:#fff;}.btn.su{background:var(--g);color:#fff;}.btn.da{background:var(--r);color:#fff;}.btn.dl{background:#7f1d1d;color:#fff;}.btn.gh{background:var(--pb);color:var(--p);}
-.ur{display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid var(--br);gap:12px;flex-wrap:wrap;}
-.ur:last-child{border-bottom:none;}
-.uav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
-.uav.admin{background:#fef3e8;color:var(--od);}.uav.teacher{background:#f0fdf4;color:var(--g);}.uav.student{background:var(--pb);color:var(--p);}
+.btn.pr{background:var(--p);color:#fff;}.btn.su{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border-radius:99px;padding:8px 18px;}.btn.da{background:#dc2626;color:#fff;}.btn.dl{background:#7f1d1d;color:#fff;}.btn.gh{background:var(--pb);color:var(--p);}
+.ur{display:flex;align-items:center;padding:14px 20px;gap:12px;flex-wrap:wrap;border-top:1px solid rgba(203,195,213,.18);transition:background .15s;}
+.ur:hover{background:var(--s-low);}
+.uav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.uav.admin{background:#fef3e8;color:var(--od);}.uav.teacher{background:#f0fdf4;color:#16a34a;}.uav.student{background:var(--pb);color:var(--p);}
 .ui{flex:1;min-width:120px;}
-.un{font-size:14px;font-weight:700;}
-.um{font-size:11px;color:var(--mu);font-weight:600;margin-top:1px;}
+.un{font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;}
+.um{font-size:11px;color:var(--mu);font-weight:500;margin-top:2px;}
 .ua{display:flex;gap:6px;flex-wrap:wrap;}
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
 .mo.on{display:flex;}
-.md{background:#fff;border-radius:20px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:fu .25s ease both;max-height:90vh;overflow-y:auto;}
-.md h3{font-size:18px;font-weight:800;color:var(--pd);margin-bottom:20px;}
+.md{background:#fff;border-radius:24px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.2);animation:fu .25s ease both;max-height:90vh;overflow-y:auto;}
+.md h3{font-family:'Manrope',sans-serif;font-size:18px;font-weight:700;color:var(--p);margin-bottom:20px;}
 .mda{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-.ld{text-align:center;padding:48px;color:var(--mu);font-weight:700;}
-.sp{width:32px;height:32px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+.ld{text-align:center;padding:48px;color:var(--mu);font-weight:600;}
+.sp{width:32px;height:32px;border:3px solid var(--s-high);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .es{text-align:center;padding:48px 24px;color:var(--mu);}
 .es .ic{font-size:40px;margin-bottom:12px;}
-.es p{font-size:14px;font-weight:600;}
-.sdiv{border:none;border-top:2px solid var(--br);margin:24px 0;}
-.cbx{background:var(--pb);border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2;color:var(--pd);}
-@media(max-width:600px){.ca{padding:16px;}.lbox{padding:32px 24px;}.fgrid{grid-template-columns:1fr 1fr;}.scards{grid-template-columns:1fr 1fr;}}
+.es p{font-size:14px;font-weight:500;}
+.sdiv{border:none;border-top:1px solid rgba(203,195,213,.3);margin:28px 0;}
+.cbx{background:var(--s-low);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2;color:var(--p);}
+@media(max-width:600px){.ca{padding:16px;}.lbox{padding:32px 24px;}.fgrid{grid-template-columns:1fr 1fr;}.scards{grid-template-columns:1fr 1fr;}.hdr-inner{padding:0 16px;}.tnav{padding:0 0px;}}
 
-/* ── Fasikül iframe overlay ── */
-#frmOverlay{display:none;position:fixed;inset:0;z-index:5000;background:#6B4FBB;flex-direction:column;}
+/* ── Page header inside content ── */
+.pg-hdr{max-width:1280px;margin:0 auto 28px;padding:0;text-align:center;}
+.pg-title{font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:var(--tx);letter-spacing:-.5px;margin-bottom:6px;}
+.pg-sub{font-size:14px;color:var(--mu);font-weight:500;}
+.yon-wrap{max-width:896px;margin:0 auto;}
+
+/* ── Fasikül overlay ── */
+#frmOverlay{display:none;position:fixed;inset:0;z-index:5000;background:var(--p);flex-direction:column;}
 #frmOverlay.on{display:flex;}
-#frmBar{background:linear-gradient(135deg,#4a2f99,#6B4FBB);color:#fff;padding:0 16px;height:44px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
-#frmBar button{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:5px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
-#frmBar button:hover{background:rgba(255,255,255,0.3);}
-#frmBar .ftitle{font-size:14px;font-weight:800;flex:1;}
+#frmBar{background:linear-gradient(135deg,var(--pd),var(--p));color:#fff;padding:0 16px;height:48px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+#frmBar button{background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:99px;padding:6px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+#frmBar button:hover{background:rgba(255,255,255,0.25);}
+#frmBar .ftitle{font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;flex:1;}
 #fasikülFrame{flex:1;border:none;width:100%;height:100%;}
 @media(max-width:768px){#frmBar{display:none;}}
 </style>
@@ -131,31 +267,62 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-he
   </div>
 </div>
 <div id="sLogin" class="scr">
-  <div class="lbox">
-    <div class="llogo">
-      <div class="lico">📐</div>
+  <div class="l-ring1"></div>
+  <div class="l-ring2"></div>
+  <div class="l-wrap">
+    <div class="l-brand">
+      <div class="lico">🧭</div>
       <h1>BrnGz Akademi</h1>
-      <p>Dijital Defter Portalı</p>
+      <p>Öğrenmenin Yeni Boyutu</p>
     </div>
-    <div class="fg"><label>Kullanıcı Adı</label><input type="text" id="lu" placeholder="kullanıcı adınız" autocomplete="off"></div>
-    <div class="fg"><label>Şifre</label><input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btnL" id="lbtn" onclick="doLogin()">Giriş Yap</button>
-    <div class="lerr" id="lerr"></div>
+    <div class="lbox">
+      <div class="fg">
+        <label>Kullanıcı Adı</label>
+        <div class="fi-wrap">
+          <span class="fi-ico material-symbols-outlined">person</span>
+          <input type="text" id="lu" placeholder="kullaniciadi" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Şifre</label>
+        <div class="fi-wrap">
+          <span class="fi-ico material-symbols-outlined">lock</span>
+          <input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="fi-eye material-symbols-outlined" type="button" onclick="(function(b){const i=document.getElementById('lp');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'visibility':'visibility_off';})(this)">visibility</button>
+        </div>
+        <div class="l-forgot"><a href="#">Şifremi Unuttum</a></div>
+      </div>
+      <button class="btnL" id="lbtn" onclick="doLogin()">Giriş Yap</button>
+      <div class="lerr" id="lerr"></div>
+    </div>
+    <div class="l-footer">
+      Hesabınız yok mu? <a href="#">Hemen Kaydolun</a>
+    </div>
   </div>
 </div>
 <div id="sApp" class="scr">
   <div class="hdr">
-    <div class="logo">BrnGz <span>Akademi</span></div>
-    <div class="hu">
-      <div class="hav" id="hav">?</div>
-      <span id="hnm">-</span>
-      <span class="hrl" id="hrl">-</span>
-      <button class="btnO" onclick="doLogout()">Çıkış</button>
+    <div class="hdr-inner">
+      <div class="logo">BrnGz <span>Akademi</span></div>
+      <div class="hu">
+        <div class="hav" id="hav">?</div>
+        <span id="hnm" style="white-space:nowrap;">-</span>
+        <span class="hrl" id="hrl">-</span>
+        <button class="btnO" onclick="doLogout()">Çıkış</button>
+      </div>
     </div>
   </div>
-  <div class="tnav" id="tnav"></div>
+  <div class="tnav-wrap">
+    <div class="tnav" id="tnav"></div>
+  </div>
   <div class="ca">
-    <div class="tp on" id="tFas"><div class="stit" style="max-width:1140px;margin-left:auto;margin-right:auto;">📚 Fasiküller</div><div class="fgrid" id="fgrid"></div></div>
+    <div class="tp on" id="tFas">
+      <div class="pg-hdr">
+        <h2 class="pg-title">Fasiküller</h2>
+        <p class="pg-sub">Müfredat kapsamındaki tüm fasikülleri buradan çalışın.</p>
+      </div>
+      <div class="fgrid" id="fgrid"></div>
+    </div>
     <div class="tp" id="tBen"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
     <div class="tp" id="tOgr"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
     <div class="tp" id="tOgt"><div class="ld"><div class="sp"></div>Yükleniyor...</div></div>
@@ -223,7 +390,7 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-ap
 import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import{getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,query,where,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const FB=initializeApp({apiKey:"AIzaSyAHpqHca8a4DHsa5rbtnWPJ0KRUPCLBRdg",authDomain:"dijital-defter-50c06.firebaseapp.com",projectId:"dijital-defter-50c06",storageBucket:"dijital-defter-50c06.firebasestorage.app",messagingSenderId:"989908182887",appId:"1:989908182887:web:eec6c1ad6c9cf09dbfb1c2"});
+const FB=initializeApp({apiKey:"AIzaSyCfkt5Pf82o2InXvcqRdkHiXEkD-18_u0M",authDomain:"dijital-fasikul.firebaseapp.com",projectId:"dijital-fasikul",storageBucket:"dijital-fasikul.firebasestorage.app",messagingSenderId:"127715156463",appId:"1:127715156463:web:b69b4dc29b6762dc69561a"});
 const auth=getAuth(FB),db=getFirestore(FB);
 
 const FASIKUL=[
@@ -252,7 +419,7 @@ window.doLogin=async()=>{
   const btn=$('lbtn'),err=$('lerr');
   if(!u||!p)return;
   btn.disabled=true;btn.textContent='Giriş yapılıyor...';err.style.display='none';
-  const emails=[u+'@admin.com',u+'@brngs.com',u+'@dijital-defter.app'];
+  const emails=[u+'@dijital-fasikul.com',u+'@admin.com',u+'@brngs.com',u+'@dijital-defter.app'];
   let ok=false;
   for(const email of emails){
     try{await signInWithEmailAndPassword(auth,email,p);ok=true;break;}catch(e){}
@@ -267,15 +434,43 @@ window.openFrame=(url,title)=>{
   document.getElementById('frmTitle').textContent=title||'';
   ov.classList.add('on');
 };
-window.closeFrame=()=>{
+window.closeFrame=async()=>{
   const ov=$('frmOverlay');
   ov.classList.remove('on');
   document.getElementById('fasikülFrame').src='';
-  renderFas(); // istatistikleri yenile
+  // Günlük aktiviteyi kaydet
+  if(CU){
+    const today=new Date().toISOString().slice(0,10);
+    const snap=await getDoc(doc(db,'stats',CU.uid));
+    const existing=snap.exists()?snap.data():{};
+    const todayData=existing.daily&&existing.daily[today]||{minutes:0,questions:0,pages:0};
+    // Bugünün verisini fasikül istatistiklerinden güncelle
+    let totalMin=0,totalQ=0;
+    FASIKUL.forEach(f=>{const fs=existing[f.id]||{};totalMin+=fs.minutes||0;totalQ+=(fs.correct||0)+(fs.wrong||0);});
+    // daily kaydı: daha önce kaydedilmemişse bugün için hesapla
+    const newDaily={...(existing.daily||{})};
+    if(!newDaily[today]) newDaily[today]={minutes:0,questions:0,pages:0};
+    await setDoc(doc(db,'stats',CU.uid),{daily:newDaily},{merge:true});
+  }
+  renderFas();
 };
-// Fasikül sayfasından postMessage dinle
-window.addEventListener('message',e=>{
-  if(e.data==='closeFrame') closeFrame();
+// Fasikül sayfasından postMessage dinle - günlük aktivite verisi de gelebilir
+window.addEventListener('message',async e=>{
+  if(e.data==='closeFrame'){ closeFrame(); return; }
+  // {type:'activity', minutes:N, questions:N, pages:N} formatında veri
+  if(e.data&&e.data.type==='activity'&&CU){
+    const today=new Date().toISOString().slice(0,10);
+    const snap=await getDoc(doc(db,'stats',CU.uid));
+    const existing=snap.exists()?snap.data():{};
+    const prev=(existing.daily||{})[today]||{minutes:0,questions:0,pages:0};
+    const newDay={
+      minutes:Math.max(prev.minutes||0, e.data.minutes||0),
+      questions:Math.max(prev.questions||0, e.data.questions||0),
+      pages:Math.max(prev.pages||0, e.data.pages||0),
+    };
+    const newDaily={...(existing.daily||{}),[today]:newDay};
+    await setDoc(doc(db,'stats',CU.uid),{daily:newDaily},{merge:true});
+  }
 });
 
 window.doLogout=async()=>{await signOut(auth);CU=null;CP=null;showScr('sLogin');};
@@ -353,10 +548,34 @@ async function renderFas(){
   if(visibleFas.length===0){g.innerHTML='<div class="es" style="grid-column:1/-1"><div class="ic">📚</div><p>Erişebileceğiniz fasikül bulunmuyor.</p></div>';return;}
   visibleFas.forEach(f=>{
     const fs=us[f.id]||{},c=fs.correct||0,w=fs.wrong||0,m=fs.minutes||0;
+    const started=c||w||m;
+    const total=c+w;
+    const pct=total?Math.round(c/total*100):0;
+    const numPad=f.n.toString().padStart(2,'0');
     const card=document.createElement('div');
     card.className='fc';
-    card.style.borderTop=`3px solid ${f.hex}`;
-    card.innerHTML=`<div class="fnum ${f.c}">${f.n}</div><div class="ftit">${f.t}</div><div class="fsub">${f.s}</div><div class="fst">${c?`<span class="fs c">✅ ${c}</span>`:''}${w?`<span class="fs w">❌ ${w}</span>`:''}${m?`<span class="fs t">⏱ ${fmt(m)}</span>`:''}${!c&&!w&&!m?'<span class="fs n">Başlanmadı</span>':''}</div>`;
+    card.innerHTML=
+      '<div class="fc-top">'+
+        '<div class="fnum '+f.c+'">'+f.n+'</div>'+
+        '<span class="fc-badge '+(started?'started':'new')+'">'+(started?'Başlandı':'Yeni')+'</span>'+
+      '</div>'+
+      '<div class="fc-seq">Fasikül #'+numPad+'</div>'+
+      '<div class="ftit">'+f.t+'</div>'+
+      '<div class="fsub">'+f.s+'</div>'+
+      '<div class="fc-meta">'+
+        (c||w?'<div class="fc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="opacity:.6"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'+c+' Doğru · '+w+' Yanlış</div>':'')+
+        (m?'<div class="fc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="opacity:.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+fmt(m)+'</div>':'')+
+        (!started?'<div class="fc-meta-item" style="color:var(--mu);font-style:italic;">Henüz başlanmadı</div>':'')+
+      '</div>'+
+      '<div class="fc-footer">'+
+        '<div class="fc-progress-track">'+
+          '<div class="fc-progress-fill'+(started?(total>0?' partial':''):' none')+'" style="width:'+(started?(total>0?pct:8):100)+'%"></div>'+
+        '</div>'+
+        '<button class="fc-btn">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'+
+          (started?'Devam Et':'Başla')+
+        '</button>'+
+      '</div>';
     card.onclick=()=>{
       sessionStorage.setItem('dd_uid',CU.uid);
       sessionStorage.setItem('dd_name',CP.name);
@@ -368,55 +587,199 @@ async function renderFas(){
   });
 }
 
-function buildStsHTML(data){
-  let tc=0,tw=0,tm=0,ts=0;
-  FASIKUL.forEach(f=>{const fs=data[f.id]||{};tc+=fs.correct||0;tw+=fs.wrong||0;tm+=fs.minutes||0;ts+=fs.solutionViews||0;});
-  const tot=tc+tw,pct=tot?Math.round(tc/tot*100):0;
-  let h=`<div class="scards" style="max-width:860px;margin-left:auto;margin-right:auto;">
-    <div class="sc p"><div class="v">${tot}</div><div class="l">Toplam Soru</div></div>
-    <div class="sc g"><div class="v">${tc}</div><div class="l">Doğru</div></div>
-    <div class="sc r"><div class="v">${tw}</div><div class="l">Yanlış</div></div>
-    <div class="sc o"><div class="v">${pct}%</div><div class="l">Başarı</div></div>
-    <div class="sc p"><div class="v">${fmt(tm)}</div><div class="l">Süre</div></div>
-    <div class="sc o"><div class="v">${ts}</div><div class="l">Çözüm Görme</div></div>
-  </div>`;
-  let fi=0;
+function buildStsHTML(data, panelId){
+  // Aggregate all-time totals from fasikul data
+  let tcAll=0,twAll=0,tmAll=0,tsAll=0;
   FASIKUL.forEach(f=>{
-    fi++;
-    const fs=data[f.id]||{},secs=fs.sections||{};
-    const ft=(fs.correct||0)+(fs.wrong||0),fp=ft?Math.round((fs.correct||0)/ft*100):0;
-    const clrs=['purple','orange','green','purple','orange','green','purple'];
-    const clr=clrs[(fi-1)%clrs.length];
-    const cleanTitle=f.t.replace(/^\d+\.\s*/,'');h+=`<div class="dt" style="max-width:860px;margin-left:auto;margin-right:auto;margin-bottom:16px;">
-      <div class="dth"><span>${fi}. ${cleanTitle}</span><span style="font-size:12px;opacity:.85;">${ft?`${fs.correct||0}✅ ${fs.wrong||0}❌ — %${fp} · ${fmt(fs.minutes||0)}`:'Henüz çalışılmadı'}</span></div>`;
-    if(ft>0){
-      h+=`<div class="fscards">
-        <div class="sc p"><div class="v">${ft}</div><div class="l">Toplam</div></div>
-        <div class="sc g"><div class="v">${fs.correct||0}</div><div class="l">Doğru</div></div>
-        <div class="sc r"><div class="v">${fs.wrong||0}</div><div class="l">Yanlış</div></div>
-        <div class="sc o"><div class="v">${fp}%</div><div class="l">Başarı</div></div>
-        <div class="sc p"><div class="v">${fmt(fs.minutes||0)}</div><div class="l">Süre</div></div>
-        <div class="sc o"><div class="v">${fs.solutionViews||0}</div><div class="l">Çözüm</div></div>
-      </div>`;
-      if(Object.keys(secs).length){
-        h+=`<table><tr><th>Bölüm</th><th>Soru</th><th>Doğru</th><th>Yanlış</th><th>Başarı</th><th>Çözüm</th></tr>`;
-        Object.entries(secs).sort(([a],[b])=>a.localeCompare(b,'tr')).forEach(([s,d])=>{
-          const st=(d.correct||0)+(d.wrong||0),sp=st?Math.round((d.correct||0)/st*100):0;
-          h+=`<tr><td>${s}</td><td>${st}</td><td><span class="pill g">✅ ${d.correct||0}</span></td><td><span class="pill r">❌ ${d.wrong||0}</span></td><td><span class="pill ${sp>=70?'g':sp>=40?'o':'r'}">${sp}%</span></td><td>${d.solutionViews||0}</td></tr>`;
-        });
-        h+=`</table>`;
-      }
-    }else{
-      h+=`<div style="padding:14px 18px;font-size:13px;color:var(--mu);font-weight:600;">Bu fasikülde henüz çalışılmadı.</div>`;
-    }
-    h+=`</div>`;
+    const fs=data[f.id]||{};
+    tcAll+=fs.correct||0; twAll+=fs.wrong||0; tmAll+=fs.minutes||0; tsAll+=fs.solutionViews||0;
   });
-  return h;
+
+  // daily map: data.daily = { "2025-04-13": {minutes,questions,pages} }
+  const daily = data.daily || {};
+
+  const heatColors=['#e7e0eb','#d0bef5','#a78bfa','#7c3aed','#461599'];
+
+  function getDateStr(d){ return d.toISOString().slice(0,10); }
+
+  function buildHeatmap(mode){
+    const now=new Date();
+    let startDate;
+    if(mode==='week'){ startDate=new Date(now); startDate.setDate(now.getDate()-6); }
+    else if(mode==='month'){ startDate=new Date(now.getFullYear(),now.getMonth(),1); }
+    else { startDate=new Date(now.getFullYear(),now.getMonth()-8,1); }
+
+    const dates=[];
+    const cur=new Date(startDate);
+    while(cur<=now){ dates.push(getDateStr(new Date(cur))); cur.setDate(cur.getDate()+1); }
+
+    let maxVal=0;
+    dates.forEach(dt=>{
+      const v=daily[dt]||{};
+      const score=(v.minutes||0)+(v.questions||0)*2+(v.pages||0);
+      if(score>maxVal) maxVal=score;
+    });
+
+    function getColor(dt){
+      const v=daily[dt]||{};
+      const score=(v.minutes||0)+(v.questions||0)*2+(v.pages||0);
+      if(!score) return heatColors[0];
+      if(maxVal===0) return heatColors[0];
+      const r=score/maxVal;
+      if(r<0.2) return heatColors[1];
+      if(r<0.4) return heatColors[2];
+      if(r<0.7) return heatColors[3];
+      return heatColors[4];
+    }
+
+    let totalMin=0,totalQ=0,activeDays=0;
+    let cells='';
+    dates.forEach(dt=>{
+      const v=daily[dt]||{};
+      const mins=v.minutes||0, qs=v.questions||0, pg=v.pages||0;
+      totalMin+=mins; totalQ+=qs;
+      if(mins||qs||pg) activeDays++;
+      const tip=`${dt}: ${mins}dk, ${qs} soru${pg?' '+pg+' sayfa':''}`;
+      cells+=`<div title="${tip}" style="height:18px;border-radius:3px;background:${getColor(dt)};cursor:default;"></div>`;
+    });
+
+    // month labels for year view
+    let monthLabels='';
+    if(mode==='year'){
+      const mNames=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+      const seen=new Set(); const lbls=[];
+      dates.forEach(dt=>{ const m=parseInt(dt.slice(5,7))-1; if(!seen.has(m)){seen.add(m);lbls.push(mNames[m]);} });
+      monthLabels=`<div style="display:flex;justify-content:space-between;padding:0 2px;margin-bottom:6px;">${lbls.map(m=>`<span style="font-size:10px;font-weight:700;color:#7b7484;text-transform:uppercase;">${m}</span>`).join('')}</div>`;
+    }
+
+    const cols=mode==='week'?7:mode==='month'?Math.ceil(dates.length/4)||7:30;
+    const label=mode==='week'?'Bu Hafta':mode==='month'?'Bu Ay':'Yıllık';
+    return {cells,monthLabels,cols,totalMin,totalQ,activeDays,label};
+  }
+
+  function filteredTotals(mode){
+    const now=new Date();
+    let startStr;
+    if(mode==='week'){ const s=new Date(now); s.setDate(now.getDate()-6); startStr=getDateStr(s); }
+    else if(mode==='month'){ startStr=getDateStr(new Date(now.getFullYear(),now.getMonth(),1)); }
+    else { startStr=getDateStr(new Date(now.getFullYear(),0,1)); }
+
+    let tm=0,tq=0,days=0;
+    Object.entries(daily).forEach(([dt,v])=>{
+      if(dt>=startStr){ tm+=(v.minutes||0); tq+=(v.questions||0); if(v.minutes||v.questions||v.pages) days++; }
+    });
+    // for year fallback to fasikul totals
+    const tc=mode==='year'?tcAll:(tq||tcAll);
+    const tw=mode==='year'?twAll:twAll;
+    const finalTm=mode==='year'?tmAll:(tm||tmAll);
+    const tot=tc+tw, pct=tot?Math.round(tc/tot*100):0;
+    const avg=days>0?Math.round(finalTm/days):0;
+    return {tc,tw,tm:finalTm,ts:tsAll,tot,pct,avg,days};
+  }
+
+  function renderContent(mode){
+    const T=filteredTotals(mode);
+    const hm=buildHeatmap(mode);
+
+    const bigStats=[
+      {l:'Toplam Soru',v:T.tot||0},
+      {l:'Doğru Cevap',v:T.tc||0},
+      {l:'Günlük Ort.',v:(T.avg||0)+'dk'},
+      {l:'Çalışılan Gün',v:T.days||0},
+    ];
+    const qStats=[
+      {l:'Toplam Soru',v:T.tot||0,c:'#461599'},
+      {l:'Doğru',v:T.tc||0,c:'#16a34a'},
+      {l:'Yanlış',v:T.tw||'—',c:'#dc2626'},
+      {l:'Başarı',v:T.tot?T.pct+'%':'—',c:'#e07020'},
+      {l:'Süre',v:fmt(T.tm)||'0dk',c:'#461599'},
+      {l:'Çözüm Görme',v:T.ts||0,c:'#e07020'},
+    ];
+
+    return `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+      ${bigStats.map(s=>`<div style="background:#fff;border-radius:14px;padding:20px 14px;text-align:center;box-shadow:0 8px 24px rgba(70,21,153,0.05);transition:background .2s;" onmouseover="this.style.background='#eaddff'" onmouseout="this.style.background='#fff'">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:#494453;margin-bottom:8px;">${s.l}</div>
+        <div style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#461599;line-height:1;">${s.v}</div>
+      </div>`).join('')}
+    </div>
+    <div style="background:#f8f1fc;border-radius:24px;padding:24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:#1d1a22;margin:0;">${hm.label} Aktivite</h3>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:#494453;">Az</span>
+          ${heatColors.map(c=>`<div style="width:12px;height:12px;border-radius:3px;background:${c};"></div>`).join('')}
+          <span style="font-size:11px;color:#494453;">Çok</span>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <div style="min-width:${mode==='week'?220:500}px;">
+          ${hm.monthLabels}
+          <div style="display:grid;grid-template-columns:repeat(${hm.cols},1fr);gap:4px;">${hm.cells}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <p style="font-size:13px;color:#494453;font-style:italic;">${hm.label} <strong>${hm.totalMin}</strong> dk çalışıldı · <strong>${hm.totalQ}</strong> soru çözüldü · <strong>${hm.activeDays}</strong> aktif gün</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
+      <div style="background:#f2ebf7;border-radius:24px;padding:24px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <h4 style="font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:#1d1a22;margin:0 0 8px 0;">Başarı Rozeti</h4>
+          <p style="font-size:13px;color:#494453;margin:0;">Toplam ${tcAll} doğru cevap ile harika gidiyorsunuz!</p>
+        </div>
+        <div style="width:72px;height:72px;background:rgba(101,86,135,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <span style="font-size:36px;">🏆</span>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#461599,#5e35b1);border-radius:24px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;">
+        <span style="font-size:26px;">📈</span>
+        <div style="margin-top:16px;">
+          <h4 style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;margin:0 0 4px 0;">Verimlilik</h4>
+          <p style="font-size:12px;opacity:.8;margin:0;">Toplam ${Math.round(tcAll/(tcAll+twAll||1)*100)||0}% başarı oranı</p>
+        </div>
+      </div>
+    </div>
+`;
+  }
+
+  // unique id per panel
+  const pid='sp'+(Date.now()%99999);
+  window._spData=window._spData||{};
+  window._spData[pid]={data,renderContent};
+
+  const btnStyle=(active)=>`padding:8px 24px;border-radius:99px;border:none;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;background:${active?'#461599':'transparent'};color:${active?'#fff':'#494453'};font-weight:${active?'600':'500'};`;
+
+  return `<div style="max-width:860px;margin:0 auto;font-family:'Inter',sans-serif;">
+    <div style="display:flex;justify-content:center;margin-bottom:28px;">
+      <div style="display:inline-flex;gap:4px;padding:4px;background:#f8f1fc;border-radius:99px;">
+        <button id="${pid}y" style="${btnStyle(true)}" onclick="spSwitch('${pid}','year')">Bu Yıl</button>
+        <button id="${pid}m" style="${btnStyle(false)}" onclick="spSwitch('${pid}','month')">Bu Ay</button>
+        <button id="${pid}w" style="${btnStyle(false)}" onclick="spSwitch('${pid}','week')">Bu Hafta</button>
+      </div>
+    </div>
+    <div id="${pid}c">${renderContent('year')}</div>
+  </div>`;
 }
+
+window.spSwitch=function(pid,mode){
+  const d=window._spData&&window._spData[pid];
+  if(!d) return;
+  document.getElementById(pid+'c').innerHTML=d.renderContent(mode);
+  ['y','m','w'].forEach(k=>{
+    const btn=document.getElementById(pid+k);
+    if(!btn) return;
+    const active=(k==='y'&&mode==='year')||(k==='m'&&mode==='month')||(k==='w'&&mode==='week');
+    btn.style.background=active?'#461599':'transparent';
+    btn.style.color=active?'#fff':'#494453';
+    btn.style.fontWeight=active?'600':'500';
+  });
+};
+
 
 async function renderSts(uid,panelId){
   const snap=await getDoc(doc(db,'stats',uid));
-  $(panelId).innerHTML=buildStsHTML(snap.exists()?snap.data():{});
+  $(panelId).innerHTML=buildStsHTML(snap.exists()?snap.data():{},panelId);
 }
 
 async function renderOgr(){
@@ -428,7 +791,7 @@ async function renderOgr(){
   for(const ud of snap.docs){
     const u=ud.data();
     const ss=await getDoc(doc(db,'stats',ud.id));
-    h+=`<div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav student">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div>${CP.role==='admin'?`<button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button>`:''}</div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
+    h+=`<div class="sts-wrap"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav student">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div>${CP.role==='admin'?`<button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button>`:''}</div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
   }
   el.innerHTML=h;
 }
@@ -441,7 +804,7 @@ async function renderOgt(){
   for(const ud of snap.docs){
     const u=ud.data();
     const ss=await getDoc(doc(db,'stats',ud.id));
-    h+=`<div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav teacher">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div><button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button></div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
+    h+=`<div class="sts-wrap"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;"><div class="uav teacher">${ini(u.name)}</div><div><div style="font-size:15px;font-weight:800;">${u.name}</div><div style="font-size:11px;color:var(--mu);font-weight:600;">@${u.username}</div></div></div><button class="btn da" onclick="askReset('${ud.id}','${u.name}')">🗑 Sıfırla</button></div>${buildStsHTML(ss.exists()?ss.data():{})}</div><hr class="sdiv">`;
   }
   el.innerHTML=h;
 }
@@ -451,7 +814,7 @@ async function renderYon(){
   const snap=await getDocs(query(collection(db,'users'),where('role','!=','admin')));
   const users=snap.docs.map(d=>({id:d.id,...d.data()}));
   const tMap={};users.filter(u=>u.role==='teacher').forEach(t=>tMap[t.id]=t.name);
-  el.innerHTML=`<div class="ul"><div class="ulh"><h3>👥 Kullanıcılar (${users.length})</h3><button class="btn su" onclick="openAddUser()">➕ Kullanıcı Ekle</button></div>${users.length?users.map(u=>{const fasCount=u.allowedFasikul?u.allowedFasikul.length:FASIKUL.length;return`<div class="ur"><div class="uav ${u.role}">${ini(u.name)}</div><div class="ui"><div class="un">${u.name}</div><div class="um">@${u.username} · ${u.role==='teacher'?'Öğretmen':'Öğrenci'}${u.teacherId&&tMap[u.teacherId]?` · 👨‍🏫 ${tMap[u.teacherId]}`:u.role==='student'?' · <span style="color:var(--r)">Öğretmen atanmadı</span>':''} · <span style="color:#0891b2;">📚 ${fasCount}/${FASIKUL.length} fasikül</span></div></div><div class="ua"><button class="btn gh" onclick="showCred('${u.username}','${u.password}','${u.name}')">📋</button>${u.role==='student'?`<button class="btn pr" onclick="openAssign('${u.id}','${u.name}','${u.teacherId||''}')">👨‍🏫 Ata</button>`:''}<button class="btn" style="background:#0891b2;color:#fff;" onclick="openFasAssign('${u.id}','${u.name}')">📚 Fasiküller</button><button class="btn da" onclick="askReset('${u.id}','${u.name}')">🗑</button><button class="btn dl" onclick="delUser('${u.id}','${u.name}')">✕ Sil</button></div></div>`;}).join(''):'<div style="padding:20px;text-align:center;color:var(--mu);font-weight:600;">Kullanıcı yok.</div>'}</div>`;
+  el.innerHTML=`<div class="yon-wrap"><div class="ul"><div class="ulh"><h3>👥 Kullanıcılar (${users.length})</h3><button class="btn su" onclick="openAddUser()">➕ Kullanıcı Ekle</button></div>${users.length?users.map(u=>{const fasCount=u.allowedFasikul?u.allowedFasikul.length:FASIKUL.length;return`<div class="ur"><div class="uav ${u.role}">${ini(u.name)}</div><div class="ui"><div class="un">${u.name}</div><div class="um">@${u.username} · ${u.role==='teacher'?'Öğretmen':'Öğrenci'}${u.teacherId&&tMap[u.teacherId]?` · 👨‍🏫 ${tMap[u.teacherId]}`:u.role==='student'?' · <span style="color:var(--r)">Öğretmen atanmadı</span>':''} · <span style="color:#0891b2;">📚 ${fasCount}/${FASIKUL.length} fasikül</span></div></div><div class="ua"><button class="btn gh" onclick="showCred('${u.username}','${u.password}','${u.name}')">📋</button>${u.role==='student'?`<button class="btn pr" onclick="openAssign('${u.id}','${u.name}','${u.teacherId||''}')">👨‍🏫 Ata</button>`:''}<button class="btn" style="background:#0891b2;color:#fff;" onclick="openFasAssign('${u.id}','${u.name}')">📚 Fasiküller</button><button class="btn da" onclick="askReset('${u.id}','${u.name}')">🗑</button><button class="btn dl" onclick="delUser('${u.id}','${u.name}')">✕ Sil</button></div></div>`;}).join(''):'<div style="padding:28px;text-align:center;color:var(--mu);font-weight:600;">Kullanıcı yok.</div>'}</div></div>`;
 }
 
 window.openAddUser=async()=>{
@@ -576,7 +939,7 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.
 (async()=>{
   if(localStorage.getItem('dd_ok'))return;
   try{
-    const cred=await createUserWithEmailAndPassword(auth,'admin@dijital-defter.app','admin');
+    const cred=await createUserWithEmailAndPassword(auth,'admin@dijital-fasikul.com','admin1234');
     await setDoc(doc(db,'users',cred.user.uid),{name:'Admin',username:'admin',password:'admin',role:'admin',teacherId:null,createdAt:serverTimestamp()});
     localStorage.setItem('dd_ok','1');
     await signOut(auth);

@@ -793,13 +793,18 @@ const TOPICS = [
 const S = {
   student:{xp:0,badge:'Yeni Başlayan',streak:0,totalTime:0,totalCorrect:0,sessions:[]},
   cur:{topic:0,slide:0,q:0,fc:0,testIdx:0,testQ:0,answered:false,qScore:{c:0,w:0}},
-  darkMode:true,sessionStart:Date.now()
+  darkMode:false,sessionStart:Date.now()
 };
 let qTimer=null,timerInt=null;
 const topics=TOPICS;
 
 // ── INIT ──────────────────────────────────────────────
-window.onload=()=>{loadData();renderDash();startSessionTimer();};
+window.onload=()=>{
+  document.body.classList.add('light');
+  const b=document.querySelector('.thm-btn');
+  if(b)b.textContent='☀️';
+  loadData();renderDash();startSessionTimer();
+};
 
 function startSessionTimer(){
   timerInt=setInterval(()=>{
