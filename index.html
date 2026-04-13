@@ -940,7 +940,7 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.
   if(localStorage.getItem('dd_ok'))return;
   try{
     const cred=await createUserWithEmailAndPassword(auth,'admin@dijital-fasikul.com','admin1234');
-    await setDoc(doc(db,'users',cred.user.uid),{name:'Admin',username:'admin',password:'admin',role:'admin',teacherId:null,createdAt:serverTimestamp()});
+    await setDoc(doc(db,'users',cred.user.uid),{name:'Admin',username:'admin',password:'admin1234',role:'admin',teacherId:null,createdAt:serverTimestamp()});
     localStorage.setItem('dd_ok','1');
     await signOut(auth);
   }catch(e){
