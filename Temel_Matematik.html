@@ -1197,11 +1197,28 @@ var PDFKV = (function(){
   function saveCurrentDrawing(){
     var c=el('draw-canvas');if(!c)return;
     state.pageDrawings[state.currentPage]=c.getContext('2d').getImageData(0,0,c.width,c.height);
+    /* Firebase'e kaydet */
+    if(c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
+      var dataUrl = c.toDataURL('image/png');
+      window._saveDrawingToFirebase(state.currentPage, dataUrl);
+    }
   }
   function restoreDrawing(num){
     var c=el('draw-canvas');if(!c)return;
     var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
     if(state.pageDrawings[num])ctx.putImageData(state.pageDrawings[num],0,0);
+  }
+
+  /* Firebase'den gelen Image objesini pageDrawings state'ine kaydet */
+  function setPageDrawingFromUrl(pageNum, img, w, h){
+    var offscreen = document.createElement('canvas');
+    offscreen.width = w || img.width;
+    offscreen.height = h || img.height;
+    var ctx = offscreen.getContext('2d');
+    ctx.drawImage(img, 0, 0, offscreen.width, offscreen.height);
+    state.pageDrawings[pageNum] = ctx.getImageData(0, 0, offscreen.width, offscreen.height);
+    /* Aktif sayfaysa hemen göster */
+    if(pageNum === state.currentPage) restoreDrawing(pageNum);
   }
   function updatePageNav(){
     var info=el('page-info'); if(info)info.textContent='Sayfa '+state.currentPage+' / '+state.totalPages;
@@ -2637,6 +2654,7 @@ var PDFKV = (function(){
     _getSectionState:function(id){ return state.sectionStates[id]||null; },
     _getTotalCorrect:function(){ return state.totalCorrect; },
     _getTotalWrong:function(){ return state.totalWrong; },
+    _setPageDrawingFromUrl:function(pageNum,img,w,h){ setPageDrawingFromUrl(pageNum,img,w,h); },
     changePdf:function(){
       state.pdfDoc=null;state.currentPage=1;state.pageDrawings={};state.currentSection=null;state.autoFit=true;
       state.totalCorrect=0;state.totalWrong=0;state.totalAnswered=0;state.gunStats={};
@@ -2684,23 +2702,62 @@ var PDFKV = (function(){
     if (us) us.style.display = 'flex';
   }
 
-  /* ── 2. FİREBASE İSTATİSTİK KAYIT ── */
+  /* ── 2. FİREBASE İSTATİSTİK KAYIT + KARALAMA SYNC ── */
   const FB_CFG = {
-    apiKey: "AIzaSyAHpqHca8a4DHsa5rbtnWPJ0KRUPCLBRdg",
-    authDomain: "dijital-defter-50c06.firebaseapp.com",
-    projectId: "dijital-defter-50c06",
-    storageBucket: "dijital-defter-50c06.firebasestorage.app",
-    messagingSenderId: "989908182887",
-    appId: "1:989908182887:web:eec6c1ad6c9cf09dbfb1c2"
+    apiKey: "AIzaSyCfkt5Pf82o2InXvcqRdkHiXEkD-18_u0M",
+    authDomain: "dijital-fasikul.firebaseapp.com",
+    databaseURL: "https://dijital-fasikul-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "dijital-fasikul",
+    storageBucket: "dijital-fasikul.firebasestorage.app",
+    messagingSenderId: "127715156463",
+    appId: "1:127715156463:web:b69b4dc29b6762dc69561a"
   };
 
   try {
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { getDatabase, ref, set, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
 
     const apps = getApps();
     const app = apps.find(a => a.name === 'tm-sts') || initializeApp(FB_CFG, 'tm-sts');
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+
+    /* ── KARALAMA KAYDET ── */
+    window._saveDrawingToFirebase = async function(pageNum, dataUrl) {
+      if (!ddUid || !dataUrl) return;
+      try {
+        const path = ref(rtdb, 'drawings/' + ddUid + '/page_' + pageNum);
+        await set(path, { data: dataUrl, ts: Date.now() });
+      } catch(e) { console.warn('Drawing save error:', e); }
+    };
+
+    /* ── KARALAMALAR YÜKLE ── */
+    window._loadDrawingsFromFirebase = async function() {
+      if (!ddUid) return;
+      try {
+        const path = ref(rtdb, 'drawings/' + ddUid);
+        const snap = await get(path);
+        if (!snap.exists()) return;
+        const drawings = snap.val();
+        Object.keys(drawings).forEach(function(key) {
+          const pageNum = parseInt(key.replace('page_', ''));
+          const dataUrl = drawings[key].data;
+          if (!dataUrl) return;
+          const img = new Image();
+          img.onload = function() {
+            const dc = document.getElementById('draw-canvas');
+            if (!dc) return;
+            /* Sadece ilgili sayfa aktifse çiz, yoksa state'e sakla */
+            PDFKV._setPageDrawingFromUrl(pageNum, img, dc.width, dc.height);
+          };
+          img.src = dataUrl;
+        });
+      } catch(e) { console.warn('Drawing load error:', e); }
+    };
+
+    /* Sayfa yüklendikten sonra karalamalar Firebase'den alınsın */
+    window._loadDrawingsFromFirebase();
 
     /* ── 2. İSTATİSTİK KAYIT ── */
     let _saveTimer = null;
