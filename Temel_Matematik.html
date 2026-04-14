@@ -1289,6 +1289,9 @@ var PDFKV = (function(){
 
     /* ─── Çizim ─── */
     var drawing = false, lastPt = {x:0, y:0};
+    /* Canlı karalama takibi (öğretmene anlık yayın için) */
+    var liveStrokePts = [];
+    var liveThrottleTimer = null;
 
     function drawStroke(e){
       if(!drawing || !state.drawEnabled) return;
@@ -1309,6 +1312,25 @@ var PDFKV = (function(){
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.stroke();
       lastPt = p;
+      /* Canlı nokta birikimi — her 50ms'de Firebase'e gönder */
+      liveStrokePts.push([Math.round(p.x), Math.round(p.y)]);
+      if(!liveThrottleTimer){
+        liveThrottleTimer = setTimeout(function(){
+          liveThrottleTimer = null;
+          if(liveStrokePts.length > 0 && typeof window._sendLiveStroke === 'function'){
+            var dc2 = el('draw-canvas');
+            window._sendLiveStroke({
+              page:  state.currentPage,
+              pts:   liveStrokePts.slice(),
+              color: state.drawColor,
+              size:  state.drawSize,
+              tool:  state.drawTool,
+              w:     dc2 ? dc2.width  : 1000,
+              h:     dc2 ? dc2.height : 1400
+            });
+          }
+        }, 50);
+      }
     }
 
     /* ─── Viewport'a göre focal koordinat hesapla ─── */
@@ -1325,6 +1347,8 @@ var PDFKV = (function(){
       e.preventDefault();
       drawing = true;
       lastPt  = canvasPos(e);
+      liveStrokePts = []; /* yeni çizgiye başlarken sıfırla */
+      liveStrokePts.push([Math.round(lastPt.x), Math.round(lastPt.y)]);
     });
     window.addEventListener('mousemove', function(e){
       if(!drawing) return;
@@ -1333,13 +1357,16 @@ var PDFKV = (function(){
     window.addEventListener('mouseup', function(){
       if(drawing){
         drawing = false;
+        liveStrokePts = []; /* çizgi bitti, biriktirmeyi sıfırla */
         /* Her çizgi bitişinde Firebase'e kaydet (debounced) */
         clearTimeout(state._drawSaveTimer);
-        state._drawSaveTimer = setTimeout(function(){
+        state._drawSaveTimer = setTimeout(async function(){
           var c = el('draw-canvas');
           if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
             var dataUrl = c.toDataURL('image/png');
-            window._saveDrawingToFirebase(state.currentPage, dataUrl);
+            await window._saveDrawingToFirebase(state.currentPage, dataUrl);
+            /* PNG kaydedildikten sonra canlı çizgiyi temizle */
+            if(typeof window._clearLiveStroke === 'function') window._clearLiveStroke();
           }
         }, 800);
       } else {
@@ -1379,6 +1406,8 @@ var PDFKV = (function(){
         e.preventDefault();
         drawing = true;
         lastPt  = canvasPos(e);
+        liveStrokePts = []; /* yeni dokunuş — sıfırla */
+        liveStrokePts.push([Math.round(lastPt.x), Math.round(lastPt.y)]);
       }
       /* 1 parmak + !drawEnabled: preventDefault YOK → touch-action:pan-x pan-y çalışır */
     }, { passive: false });
@@ -1403,13 +1432,15 @@ var PDFKV = (function(){
       if(e.touches.length < 2) pinch.active = false;
       if(e.touches.length === 0){
         if(drawing && state.drawEnabled){
+          liveStrokePts = []; /* çizgi bitti */
           /* Touch çizimi bitti — Firebase'e kaydet */
           clearTimeout(state._drawSaveTimer);
-          state._drawSaveTimer = setTimeout(function(){
+          state._drawSaveTimer = setTimeout(async function(){
             var c = el('draw-canvas');
             if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
               var dataUrl = c.toDataURL('image/png');
-              window._saveDrawingToFirebase(state.currentPage, dataUrl);
+              await window._saveDrawingToFirebase(state.currentPage, dataUrl);
+              if(typeof window._clearLiveStroke === 'function') window._clearLiveStroke();
             }
           }, 800);
         }
@@ -2763,6 +2794,14 @@ var PDFKV = (function(){
     document.body.prepend(banner);
     const mainApp = document.getElementById('main-app');
     if (mainApp) mainApp.style.marginTop = '38px';
+
+    /* ── CANLI ÇİZİM OVERLAY — öğretmen canlı stroke'ları görmek için üst canvas ── */
+    const liveCanvas = document.createElement('canvas');
+    liveCanvas.id = 'live-canvas';
+    liveCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6;';
+    /* draw-canvas'ın parent'ına ekle */
+    const dcParent = (document.getElementById('draw-canvas') || {}).parentNode;
+    if (dcParent) { dcParent.style.position = 'relative'; dcParent.appendChild(liveCanvas); }
   }
 
   /* ── 1. PDF YÜKLEME — IndexedDB önbelleği (tryRestorePdf zaten çalışıyor) ──
@@ -2793,7 +2832,7 @@ var PDFKV = (function(){
   try {
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const { getDatabase, ref, set, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { getDatabase, ref, set, get, onValue, remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
     const { getAuth, signInWithEmailAndPassword: fbSignIn } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
 
     const apps = getApps();
@@ -2819,6 +2858,19 @@ var PDFKV = (function(){
         const path = ref(rtdb, 'drawings/' + ddUid + '/page_' + pageNum);
         await set(path, { data: dataUrl, ts: Date.now() });
       } catch(e) { console.warn('Drawing save error:', e); }
+    };
+
+    /* ── CANLI ÇİZGİ GÖNDER — her 50ms'de öğrencinin aktif stroke noktalarını RTDB'ye yaz ── */
+    window._sendLiveStroke = function(strokeData) {
+      if (isReadOnly || !ddUid || !strokeData) return;
+      try {
+        set(ref(rtdb, 'drawings/' + ddUid + '/live_stroke'), strokeData);
+      } catch(e) {}
+    };
+    /* ── CANLI ÇİZGİ TEMİZLE — PNG kaydedildikten sonra live_stroke düğümünü sil ── */
+    window._clearLiveStroke = function() {
+      if (isReadOnly || !ddUid) return;
+      try { remove(ref(rtdb, 'drawings/' + ddUid + '/live_stroke')); } catch(e) {}
     };
 
     /* ── KARALAMALAR YÜKLE ── */
@@ -2854,6 +2906,83 @@ var PDFKV = (function(){
 
     /* Sayfa yüklendikten sonra karalamalar Firebase'den alınsın */
     window._loadDrawingsFromFirebase();
+
+    /* ── ÖĞRETMEN: GERÇEK ZAMANLI KARALAMA DİNLEYİCİLERİ ── */
+    if (isReadOnly) {
+      /* ─ Yardımcı: live-canvas'ı draw-canvas ile boyut eşitle ─ */
+      function syncLiveSize() {
+        const dc = document.getElementById('draw-canvas');
+        const lc = document.getElementById('live-canvas');
+        if (dc && lc && (lc.width !== dc.width || lc.height !== dc.height)) {
+          lc.width  = dc.width;
+          lc.height = dc.height;
+        }
+      }
+
+      /* ─ Canlı stroke dinleyici ─ */
+      onValue(ref(rtdb, 'drawings/' + ddUid + '/live_stroke'), function(snap) {
+        const lc = document.getElementById('live-canvas');
+        if (!lc) return;
+        syncLiveSize();
+        const ctx = lc.getContext('2d');
+        ctx.clearRect(0, 0, lc.width, lc.height);
+        if (!snap.exists()) return;
+        const data = snap.val();
+        /* Sadece mevcut sayfanın stroke'unu göster */
+        if (!data || data.page !== state.currentPage) return;
+        const pts = data.pts;
+        if (!pts || pts.length < 1) return;
+        const scaleX = lc.width  / (data.w || lc.width);
+        const scaleY = lc.height / (data.h || lc.height);
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0] * scaleX, pts[0][1] * scaleY);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i][0] * scaleX, pts[i][1] * scaleY);
+        }
+        if (data.tool === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.lineWidth   = (data.size || 3) * 6;
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.lineWidth   = data.size || 3;
+          ctx.strokeStyle = data.color || '#000';
+        }
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.stroke();
+      });
+
+      /* ─ Kaydedilmiş sayfa PNG dinleyici — sayfa değiştiğinde yeniden abone ol ─ */
+      let _pageUnsub = null;
+      let _listenedPage = 0;
+      function subscribeCurrentPage() {
+        const pg = state.currentPage || 1;
+        if (_listenedPage === pg) return;
+        if (_pageUnsub) _pageUnsub();
+        _listenedPage = pg;
+        /* live-canvas'ı yeni sayfa için temizle */
+        const lc = document.getElementById('live-canvas');
+        if (lc) lc.getContext('2d').clearRect(0, 0, lc.width, lc.height);
+        _pageUnsub = onValue(ref(rtdb, 'drawings/' + ddUid + '/page_' + pg), function(snap) {
+          if (!snap.exists()) return;
+          const dataUrl = (snap.val() || {}).data;
+          if (!dataUrl) return;
+          const img = new Image();
+          img.onload = function() {
+            const dc = document.getElementById('draw-canvas');
+            if (!dc || dc.width < 500) return;
+            PDFKV._setPageDrawingFromUrl(pg, img, dc.width, dc.height);
+            /* Yeni PNG geldi — live-canvas temizle (stroke tamamlandı) */
+            const lc2 = document.getElementById('live-canvas');
+            if (lc2) lc2.getContext('2d').clearRect(0, 0, lc2.width, lc2.height);
+          };
+          img.src = dataUrl;
+        });
+      }
+      subscribeCurrentPage();
+      /* Öğretmen sayfayı değiştirdiğinde yeniden abone ol */
+      setInterval(subscribeCurrentPage, 800);
+    }
 
     /* ── 2. İSTATİSTİK KAYIT (salt okunur modda devre dışı) ── */
     let _saveTimer = null;
