@@ -1085,19 +1085,27 @@ var PDFKV = (function(){
   var MIN_SCALE = 0.1; /* dinamik olarak fitScale'e göre güncellenir */
   var MAX_SCALE = 4.0;
 
-  /* Spacer boyutunu ölçeğe göre güncelle */
+  /* Spacer boyutunu ölçeğe göre güncelle + sayfayı ortala */
   function updateSpacer(){
     var pc  = el('page-container');
     var sp  = el('pdf-spacer');
-    if(!pc||!sp)return;
+    var vp  = el('pdf-viewport');
+    if(!pc||!sp||!vp)return;
     var s   = state.cssScale;
-    /* sayfa CSS boyutu (canvas pixel / dpr) */
     var cvs = el('pdf-canvas');
     var dpr = window.devicePixelRatio||1;
     var natW = cvs ? cvs.width/dpr  : pc.offsetWidth;
     var natH = cvs ? cvs.height/dpr : pc.offsetHeight;
-    sp.style.width  = (natW * s + PADDING * 2) + 'px';
-    sp.style.height = (natH * s + PADDING * 2) + 'px';
+    var scaledW = natW * s;
+    var scaledH = natH * s;
+    var vpW = vp.clientWidth;
+    var vpH = vp.clientHeight;
+    var offsetX = Math.max(PADDING, (vpW - scaledW) / 2);
+    var offsetY = Math.max(PADDING, (vpH - scaledH) / 2);
+    sp.style.width  = Math.max(vpW, scaledW + PADDING * 2) + 'px';
+    sp.style.height = Math.max(vpH, scaledH + PADDING * 2) + 'px';
+    pc.style.left = offsetX + 'px';
+    pc.style.top  = offsetY + 'px';
     pc.style.transform = 'scale(' + s + ')';
   }
 
