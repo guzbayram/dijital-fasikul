@@ -2558,8 +2558,15 @@ var PDFKV = (function(){
     if (res.ok) {
       const buf = await res.arrayBuffer();
       PDFKV.loadPdfFromData(new Uint8Array(buf));
+    } else {
+      var us = document.getElementById('upload-screen');
+      if (us) us.style.display = 'flex';
     }
-  } catch(e) { console.warn('PDF auto-load error:', e); }
+  } catch(e) {
+    console.warn('PDF auto-load error:', e);
+    var us = document.getElementById('upload-screen');
+    if (us) us.style.display = 'flex';
+  }
 
   /* ── 2. FİREBASE İSTATİSTİK KAYIT ── */
   const FB_CFG = {
