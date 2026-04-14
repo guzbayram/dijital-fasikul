@@ -1196,7 +1196,7 @@ var PDFKV = (function(){
         e.preventDefault();
         var dist=touchDist(e);
         var ratio=dist/pinch.startDist;
-        var newScale=Math.min(2, Math.max(0.5, pinch.startScale*ratio));
+        var newScale=Math.min(4, Math.max(0.5, pinch.startScale*ratio));
         state.cssScale=newScale;
         applyTransform();
         showScaleHint(newScale);
@@ -1245,7 +1245,7 @@ var PDFKV = (function(){
         if(e.ctrlKey||e.metaKey){
           e.preventDefault();
           var delta=e.deltaY>0?-0.01:0.01;
-          state.cssScale=Math.min(2,Math.max(0.5,Math.round((state.cssScale+delta)*100)/100));
+          state.cssScale=Math.min(4,Math.max(0.5,Math.round((state.cssScale+delta)*100)/100));
           applyTransform();
           showScaleHint(state.cssScale);
         }
