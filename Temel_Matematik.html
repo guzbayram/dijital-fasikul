@@ -489,7 +489,6 @@
 </script>
 <div id="upload-screen" class="fixed inset-0 z-50 flex flex-col">
   <header class="h-16 flex items-center justify-between px-8 bg-primary flex-shrink-0">
-    <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-right:12px;flex-shrink:0;">🏠 Ana Sayfa</button>
     <div>
       <div class="font-extrabold text-white text-lg italic tracking-tight" style="font-family:'Manrope',sans-serif;">PDF Kanvas</div>
       <div class="text-[10px] font-black text-white/60 uppercase tracking-[.2em]">Matematik Çalışma Alanı</div>
@@ -2574,7 +2573,7 @@ var PDFKV = (function(){
 
   /* ── 1. PDF OTOMATİK YÜKLEME (Firebase'den bağımsız) ── */
   try {
-    const PDF_URL = 'https://lively-mousse-c4b810.netlify.app/Temel_Matematik/Temel_Matematik.pdf';
+    const PDF_URL = 'Temel_Matematik.pdf';
     const res = await fetch(PDF_URL);
     if (res.ok) {
       const buf = await res.arrayBuffer();
@@ -2584,12 +2583,12 @@ var PDFKV = (function(){
 
   /* ── 2. FİREBASE İSTATİSTİK KAYIT ── */
   const FB_CFG = {
-    apiKey: "AIzaSyCfkt5Pf82o2InXvcqRdkHiXEkD-18_u0M",
-    authDomain: "dijital-fasikul.firebaseapp.com",
-    projectId: "dijital-fasikul",
-    storageBucket: "dijital-fasikul.firebasestorage.app",
-    messagingSenderId: "127715156463",
-    appId: "1:127715156463:web:b69b4dc29b6762dc69561a"
+    apiKey: "AIzaSyAHpqHca8a4DHsa5rbtnWPJ0KRUPCLBRdg",
+    authDomain: "dijital-defter-50c06.firebaseapp.com",
+    projectId: "dijital-defter-50c06",
+    storageBucket: "dijital-defter-50c06.firebasestorage.app",
+    messagingSenderId: "989908182887",
+    appId: "1:989908182887:web:eec6c1ad6c9cf09dbfb1c2"
   };
 
   try {
