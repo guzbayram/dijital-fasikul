@@ -1144,11 +1144,12 @@ var PDFKV = (function(){
     var availW = vp.clientWidth  - PADDING * 2;
     var availH = vp.clientHeight - PADDING * 2;
     var naturalVp = page.getViewport({scale:1});
-    var scaleW = availW / naturalVp.width;
-    var scaleH = availH / naturalVp.height;
-    var fitScale = Math.min(scaleW, scaleH, MAX_SCALE);
-    MIN_SCALE = fitScale;
-    return fitScale;
+    var scaleW = availW / naturalVp.width;   /* genislige gore: sol+sag 10px bosluk */
+    var scaleH = availH / naturalVp.height;  /* yukseklige gore: tam sigdirma */
+    /* Minimum zoom = her iki boyuta gore tam sigdirma (kullanici bundan kucuk yapamaz) */
+    MIN_SCALE = Math.min(scaleW, scaleH, MAX_SCALE);
+    /* Normal acilis/konu secimi: sadece genislik doldurulsun */
+    return Math.min(scaleW, MAX_SCALE);
   }
 
   function renderPage(num, keepPan){
