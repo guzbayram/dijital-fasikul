@@ -2685,6 +2685,22 @@ var PDFKV = (function(){
   const ddFid = sessionStorage.getItem('dd_fid');
   if (!ddUid || !ddFid) return;
 
+  /* ── SALT OKUNUR MOD: Öğretmen/admin öğrenci karalamalarını görüntülüyor ── */
+  const isReadOnly = sessionStorage.getItem('dd_readonly') === 'true';
+  const viewerName = sessionStorage.getItem('dd_viewer_name') || '';
+  if (isReadOnly) {
+    const toolRow = document.querySelector('.px-6.py-3.flex.items-center.justify-between');
+    if (toolRow) toolRow.style.display = 'none';
+    const dc = document.getElementById('draw-canvas');
+    if (dc) { dc.style.pointerEvents = 'none'; dc.style.cursor = 'default'; }
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff;padding:8px 20px;font-family:Manrope,sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+    banner.innerHTML = '<span>👁 GÖRÜNTÜLEME MODU — ' + viewerName + ' adlı öğrencinin karalamalarını görüyorsunuz</span><span style="opacity:.7;font-size:11px;">Çizim devre dışı</span>';
+    document.body.prepend(banner);
+    const mainApp = document.getElementById('main-app');
+    if (mainApp) mainApp.style.marginTop = '38px';
+  }
+
   /* ── 1. PDF OTOMATİK YÜKLEME (Firebase'den bağımsız) ── */
   try {
     const PDF_URL = 'Temel_Matematik.pdf';
