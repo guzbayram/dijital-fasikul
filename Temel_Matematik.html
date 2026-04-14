@@ -1135,13 +1135,28 @@ var PDFKV = (function(){
     function applyTransform(){
       if(pageContainer){
         pageContainer.style.transform='scale('+state.cssScale+')';
-        pageContainer.style.transformOrigin='top center';
-        pageContainer.style.marginBottom = ((state.cssScale - 1) * pageContainer.offsetHeight / 2) + 'px';
+        pageContainer.style.transformOrigin='top left';
+        // Zoom sonrası scroll alanını genişlet
+        var w = pageContainer.offsetWidth * state.cssScale;
+        var h = pageContainer.offsetHeight * state.cssScale;
+        pageContainer.style.marginBottom = ((state.cssScale - 1) * pageContainer.offsetHeight) + 'px';
+        pageContainer.style.marginRight  = ((state.cssScale - 1) * pageContainer.offsetWidth)  + 'px';
+        // Zoom wrapper'ı ortala
+        var zw = el('zoom-wrapper');
+        if(zw && state.cssScale > 1){
+          var extra = (pageContainer.offsetWidth * (state.cssScale - 1)) / 2;
+          zw.scrollLeft = extra;
+        } else if(zw){
+          zw.scrollLeft = 0;
+        }
       }
     }
 
     function resetCssZoom(){
       state.cssScale=1;
+      if(pageContainer){
+        pageContainer.style.marginRight='0';
+      }
       applyTransform();
     }
 
