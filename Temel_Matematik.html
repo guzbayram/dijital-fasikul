@@ -1040,18 +1040,29 @@ var PDFKV = (function(){
       if(state.autoFit){
         state.scale=computeFitScale(page);
       }
-      var vp=page.getViewport({scale:state.scale});
+      /* ── Retina/HiDPI desteği: devicePixelRatio ile keskin render ── */
+      var dpr=window.devicePixelRatio||1;
+      var vp=page.getViewport({scale:state.scale*dpr});
       /* Resize canvases off-screen then paint — prevents mid-render blank flash */
       var offscreen=document.createElement('canvas');
       offscreen.width=vp.width; offscreen.height=vp.height;
+      /* CSS boyutu küçük tut, piksel sayısı büyük → keskin görüntü */
+      offscreen.style.width=(vp.width/dpr)+'px';
+      offscreen.style.height=(vp.height/dpr)+'px';
       var offCtx=offscreen.getContext('2d');
       page.render({canvasContext:offCtx,viewport:vp}).promise.then(function(){
         /* Swap in one frame */
         requestAnimationFrame(function(){
           canvas.width=vp.width; canvas.height=vp.height;
+          canvas.style.width=(vp.width/dpr)+'px';
+          canvas.style.height=(vp.height/dpr)+'px';
           ctx.drawImage(offscreen,0,0);
           var dc=el('draw-canvas');
-          if(dc){dc.width=vp.width;dc.height=vp.height;}
+          if(dc){
+            dc.width=vp.width; dc.height=vp.height;
+            dc.style.width=(vp.width/dpr)+'px';
+            dc.style.height=(vp.height/dpr)+'px';
+          }
           if(pc) pc.classList.remove('rendering');
           /* Reset CSS zoom on page change */
           state.cssScale=1;
