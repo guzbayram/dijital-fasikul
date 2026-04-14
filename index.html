@@ -929,6 +929,9 @@ window.viewStudentDrawings = function(studentUid, studentName, fasId, fasFile, f
   sessionStorage.setItem('dd_fid', fasId);
   sessionStorage.setItem('dd_readonly', 'true');
   sessionStorage.setItem('dd_viewer_name', studentName);
+  /* Öğretmen kendi kimliğiyle giriş yapacak (okuma izni için) */
+  if (CU) sessionStorage.setItem('dd_auth_email', CU.email);
+  if (CP) sessionStorage.setItem('dd_auth_pass', CP.password || '');
   openFrame(fasFile, '✏️ ' + studentName + ' — ' + fasTitle);
 };
 
