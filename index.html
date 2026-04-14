@@ -438,6 +438,9 @@ window.closeFrame=async()=>{
   const ov=$('frmOverlay');
   ov.classList.remove('on');
   document.getElementById('fasikülFrame').src='';
+  /* Readonly bayraklarını temizle — aynı sekmede başka kullanıcı sorununu önle */
+  sessionStorage.setItem('dd_readonly','false');
+  sessionStorage.removeItem('dd_viewer_name');
   // Günlük aktiviteyi kaydet
   if(CU){
     const today=new Date().toISOString().slice(0,10);
@@ -590,6 +593,11 @@ async function renderFas(){
       sessionStorage.setItem('dd_name',CP.name);
       sessionStorage.setItem('dd_role',CP.role);
       sessionStorage.setItem('dd_fid',f.id);
+      sessionStorage.setItem('dd_readonly','false');
+      sessionStorage.removeItem('dd_viewer_name');
+      /* Kimlik doğrulama için mevcut kullanıcı bilgileri */
+      sessionStorage.setItem('dd_auth_email', CU.email);
+      sessionStorage.setItem('dd_auth_pass', CP.password||'');
       openFrame(f.f, f.t);
     };
     g.appendChild(card);
@@ -908,6 +916,9 @@ window.ogrOpenFas = function(studentUid, studentName, fasId, fasFile, fasTitle, 
   sessionStorage.setItem('dd_fid', fasId);
   sessionStorage.setItem('dd_readonly', hasDrawing ? 'true' : 'false');
   sessionStorage.setItem('dd_viewer_name', studentName);
+  /* Öğretmen/admin kendi kimliğiyle giriş yapacak (okuma izni için) */
+  sessionStorage.setItem('dd_auth_email', CU.email);
+  sessionStorage.setItem('dd_auth_pass', CP.password||'');
   openFrame(fasFile, (hasDrawing?'✏️ ':'📊 ') + studentName + ' — ' + fasTitle);
 };
 

@@ -800,7 +800,7 @@ var PDFKV = (function(){
   var state = {
     pdfDoc:null, currentPage:1, totalPages:0, scale:1.5, rendering:false, autoFit:true,
     drawEnabled:false, drawTool:'pen', drawColor:'#1a1a2e', drawSize:2,
-    isDrawing:false, lastX:0, lastY:0, pageDrawings:{},
+    isDrawing:false, lastX:0, lastY:0, pageDrawings:{}, pageDrawingImgs:{},
     currentTab:'hocan', currentSection:null, gunFilter:0,
     sections:{hocan:[],ara:[],test:[]}, sectionStates:{},
     totalCorrect:0, totalWrong:0, totalAnswered:0, gunStats:{},
@@ -853,12 +853,8 @@ var PDFKV = (function(){
   }
 
   /* ── JSON LOADING ── */
-  function loadJsonFile(input){
-    var file=input.files[0];if(!file)return;
-    var reader=new FileReader();
-    reader.onload=function(e){
-      try{
-        var data=JSON.parse(e.target.result);
+  function _processJsonData(data, sourceName){
+    try{
         var secs={hocan:[],ara:[],test:[]};
         var meta={};
         if(data.meta) meta=data.meta;
@@ -980,7 +976,7 @@ var PDFKV = (function(){
         else state.kkJsonDays=null;
         state.jsonMeta=meta;
         state.jsonLoaded=true;
-        var name=meta.title||file.name;
+        var name=meta.title||sourceName||'JSON';
         /* Tüm JSON durum göstergelerini güncelle */
         ['uz-json-status','sb-json-status'].forEach(function(id){
           var s=el(id);if(s)s.style.display='flex';
@@ -995,6 +991,16 @@ var PDFKV = (function(){
         state.sectionStates={};
         initSections();
         renderProgressCard();
+    }catch(err){alert('JSON yüklenirken hata: '+err.message);}
+  }
+
+  function loadJsonFile(input){
+    var file=input.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var data=JSON.parse(e.target.result);
+        _processJsonData(data, file.name);
       }catch(err){alert('JSON yüklenirken hata: '+err.message);}
     };
     reader.readAsText(file);
@@ -1204,19 +1210,35 @@ var PDFKV = (function(){
     }
   }
   function restoreDrawing(num){
-    var c=el('draw-canvas');if(!c)return;
+    var c=el('draw-canvas');if(!c||c.width===0||c.height===0)return;
     var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
-    if(state.pageDrawings[num])ctx.putImageData(state.pageDrawings[num],0,0);
+    var d=state.pageDrawings[num];
+    if(!d) return;
+    if(d.width===c.width && d.height===c.height){
+      /* Boyutlar eşleşiyor — direkt koy */
+      ctx.putImageData(d,0,0);
+    } else if(state.pageDrawingImgs && state.pageDrawingImgs[num]){
+      /* Boyut uyuşmazlığı — orijinal img'den ölçekleyerek çiz ve güncelle */
+      ctx.drawImage(state.pageDrawingImgs[num],0,0,c.width,c.height);
+      state.pageDrawings[num]=ctx.getImageData(0,0,c.width,c.height);
+    } else {
+      /* Fallback */
+      ctx.putImageData(d,0,0);
+    }
   }
 
   /* Firebase'den gelen Image objesini pageDrawings state'ine kaydet */
   function setPageDrawingFromUrl(pageNum, img, w, h){
+    /* Orijinal img'yi sakla — boyut uyuşmazlığında yeniden ölçekleme için */
+    state.pageDrawingImgs[pageNum] = img;
+    var dc = el('draw-canvas');
+    var cw = (dc && dc.width  > 0) ? dc.width  : (w || img.width);
+    var ch = (dc && dc.height > 0) ? dc.height : (h || img.height);
     var offscreen = document.createElement('canvas');
-    offscreen.width = w || img.width;
-    offscreen.height = h || img.height;
+    offscreen.width = cw; offscreen.height = ch;
     var ctx = offscreen.getContext('2d');
-    ctx.drawImage(img, 0, 0, offscreen.width, offscreen.height);
-    state.pageDrawings[pageNum] = ctx.getImageData(0, 0, offscreen.width, offscreen.height);
+    ctx.drawImage(img, 0, 0, cw, ch);
+    state.pageDrawings[pageNum] = ctx.getImageData(0, 0, cw, ch);
     /* Aktif sayfaysa hemen göster */
     if(pageNum === state.currentPage) restoreDrawing(pageNum);
   }
@@ -1308,7 +1330,22 @@ var PDFKV = (function(){
       if(!drawing) return;
       drawStroke(e);
     });
-    window.addEventListener('mouseup', function(){ drawing = false; });
+    window.addEventListener('mouseup', function(){
+      if(drawing){
+        drawing = false;
+        /* Her çizgi bitişinde Firebase'e kaydet (debounced) */
+        clearTimeout(state._drawSaveTimer);
+        state._drawSaveTimer = setTimeout(function(){
+          var c = el('draw-canvas');
+          if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
+            var dataUrl = c.toDataURL('image/png');
+            window._saveDrawingToFirebase(state.currentPage, dataUrl);
+          }
+        }, 800);
+      } else {
+        drawing = false;
+      }
+    });
 
     /* ─── Ctrl + Mouse Wheel → Zoom (odak = fare konumu) ─── */
     viewport.addEventListener('wheel', function(e){
@@ -1364,7 +1401,20 @@ var PDFKV = (function(){
 
     drawCanvas.addEventListener('touchend', function(e){
       if(e.touches.length < 2) pinch.active = false;
-      if(e.touches.length === 0) drawing = false;
+      if(e.touches.length === 0){
+        if(drawing && state.drawEnabled){
+          /* Touch çizimi bitti — Firebase'e kaydet */
+          clearTimeout(state._drawSaveTimer);
+          state._drawSaveTimer = setTimeout(function(){
+            var c = el('draw-canvas');
+            if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
+              var dataUrl = c.toDataURL('image/png');
+              window._saveDrawingToFirebase(state.currentPage, dataUrl);
+            }
+          }, 800);
+        }
+        drawing = false;
+      }
     });
 
     /* ─── Çizim moduna göre draw-canvas touch-action güncelle ─── */
@@ -2631,6 +2681,8 @@ var PDFKV = (function(){
     loadPdfFile:loadPdfFile,
     loadPdfFromData:loadPdfFromData,
     loadJsonFile:loadJsonFile,
+    loadJsonData:function(data){_processJsonData(data,'Temel Matematik');},
+    isPdfLoaded:function(){return !!state.pdfDoc;},
     goPage:goPage,
     jumpToPage:jumpToPage,
     setColor:setColor,
@@ -2656,7 +2708,7 @@ var PDFKV = (function(){
     _getTotalWrong:function(){ return state.totalWrong; },
     _setPageDrawingFromUrl:function(pageNum,img,w,h){ setPageDrawingFromUrl(pageNum,img,w,h); },
     changePdf:function(){
-      state.pdfDoc=null;state.currentPage=1;state.pageDrawings={};state.currentSection=null;state.autoFit=true;
+      state.pdfDoc=null;state.currentPage=1;state.pageDrawings={};state.pageDrawingImgs={};state.currentSection=null;state.autoFit=true;
       state.totalCorrect=0;state.totalWrong=0;state.totalAnswered=0;state.gunStats={};
       state.sectionStates={};
       idbClear(); /* önbellekten sil */
@@ -2685,38 +2737,47 @@ var PDFKV = (function(){
   const ddFid = sessionStorage.getItem('dd_fid');
   if (!ddUid || !ddFid) return;
 
-  /* ── SALT OKUNUR MOD: Öğretmen/admin öğrenci karalamalarını görüntülüyor ── */
-  const isReadOnly = sessionStorage.getItem('dd_readonly') === 'true';
+  /* ── SALT OKUNUR MOD: Öğretmen/admin öğrenci karalamalarını görüntülüyor ──
+     dd_readonly='true' VE dd_viewer_name dolu olmalı — ikisi birden gerekli */
+  const isReadOnly = sessionStorage.getItem('dd_readonly') === 'true'
+                  && !!sessionStorage.getItem('dd_viewer_name');
   const viewerName = sessionStorage.getItem('dd_viewer_name') || '';
   if (isReadOnly) {
+    /* Çizim araç çubuğunu gizle */
     const toolRow = document.querySelector('.px-6.py-3.flex.items-center.justify-between');
     if (toolRow) toolRow.style.display = 'none';
+    /* Canvas çizimi devre dışı bırak */
     const dc = document.getElementById('draw-canvas');
     if (dc) { dc.style.pointerEvents = 'none'; dc.style.cursor = 'default'; }
+    /* Soru panelini gizle (öğretmen cevap giremiyor) */
+    const qPanel = document.getElementById('q-panel');
+    if (qPanel) qPanel.style.display = 'none';
+    /* Karne butonunu gizle */
+    const btnKarne = document.getElementById('btn-karne');
+    if (btnKarne) btnKarne.style.display = 'none';
+    /* Görüntüleme modu banner'ı */
     const banner = document.createElement('div');
+    banner.id = 'readonly-banner';
     banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff;padding:8px 20px;font-family:Manrope,sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);';
-    banner.innerHTML = '<span>👁 GÖRÜNTÜLEME MODU — ' + viewerName + ' adlı öğrencinin karalamalarını görüyorsunuz</span><span style="opacity:.7;font-size:11px;">Çizim devre dışı</span>';
+    banner.innerHTML = '<span>👁 GÖRÜNTÜLEME MODU — <strong>' + viewerName + '</strong> adlı öğrencinin karalamalarını görüyorsunuz</span><span style="opacity:.7;font-size:11px;">Salt okunur · Çizim devre dışı</span>';
     document.body.prepend(banner);
     const mainApp = document.getElementById('main-app');
     if (mainApp) mainApp.style.marginTop = '38px';
   }
 
-  /* ── 1. PDF OTOMATİK YÜKLEME (Firebase'den bağımsız) ── */
+  /* ── 1. PDF YÜKLEME — IndexedDB önbelleği (tryRestorePdf zaten çalışıyor) ──
+     PDF sunucuda değil (gitignore), kullanıcı bir kere yerel cihazından yükler,
+     IndexedDB'ye kaydedilir. Sonraki açılışlarda tryRestorePdf() otomatik yükler.
+     Eğer IndexedDB boşsa upload ekranı görünür kalır — müdahale etmiyoruz. ── */
+
+  /* ── 1b. JSON OTOMATİK YÜKLEME (sunucudan, küçük dosya) ── */
   try {
-    const PDF_URL = 'Temel_Matematik.pdf';
-    const res = await fetch(PDF_URL);
-    if (res.ok) {
-      const buf = await res.arrayBuffer();
-      PDFKV.loadPdfFromData(new Uint8Array(buf));
-    } else {
-      var us = document.getElementById('upload-screen');
-      if (us) us.style.display = 'flex';
+    const jsonRes = await fetch('Temel_Matematik.json');
+    if (jsonRes.ok) {
+      const jsonData = await jsonRes.json();
+      PDFKV.loadJsonData(jsonData);
     }
-  } catch(e) {
-    console.warn('PDF auto-load error:', e);
-    var us = document.getElementById('upload-screen');
-    if (us) us.style.display = 'flex';
-  }
+  } catch(e) { /* JSON sunucuda yoksa kullanıcı manuel yükler */ }
 
   /* ── 2. FİREBASE İSTATİSTİK KAYIT + KARALAMA SYNC ── */
   const FB_CFG = {
@@ -2733,14 +2794,26 @@ var PDFKV = (function(){
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const { getDatabase, ref, set, get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { getAuth, signInWithEmailAndPassword: fbSignIn } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
 
     const apps = getApps();
     const app = apps.find(a => a.name === 'tm-sts') || initializeApp(FB_CFG, 'tm-sts');
     const db = getFirestore(app);
     const rtdb = getDatabase(app);
 
-    /* ── KARALAMA KAYDET ── */
+    /* ── KİMLİK DOĞRULAMA (RTDB güvenlik kuralları için) ── */
+    const ddAuthEmail = sessionStorage.getItem('dd_auth_email');
+    const ddAuthPass  = sessionStorage.getItem('dd_auth_pass');
+    if (ddAuthEmail && ddAuthPass) {
+      try {
+        const auth = getAuth(app);
+        await fbSignIn(auth, ddAuthEmail, ddAuthPass);
+      } catch(authErr) { console.warn('FB auth error:', authErr.message); }
+    }
+
+    /* ── KARALAMA KAYDET (salt okunur modda devre dışı) ── */
     window._saveDrawingToFirebase = async function(pageNum, dataUrl) {
+      if (isReadOnly) return; /* öğretmen görüntüleme modunda kaydetme */
       if (!ddUid || !dataUrl) return;
       try {
         const path = ref(rtdb, 'drawings/' + ddUid + '/page_' + pageNum);
@@ -2762,10 +2835,17 @@ var PDFKV = (function(){
           if (!dataUrl) return;
           const img = new Image();
           img.onload = function() {
-            const dc = document.getElementById('draw-canvas');
-            if (!dc) return;
-            /* Sadece ilgili sayfa aktifse çiz, yoksa state'e sakla */
-            PDFKV._setPageDrawingFromUrl(pageNum, img, dc.width, dc.height);
+            /* PDF render tamamlanana kadar bekle (canvas doğru boyuta sahip olana kadar) */
+            function tryApply(attempts) {
+              const dc = document.getElementById('draw-canvas');
+              /* Canvas varsayılan 300px genişliğinden büyük olmalı (PDF render sonrası) */
+              if (!dc || (dc.width < 500 && attempts < 40)) {
+                setTimeout(function(){ tryApply(attempts+1); }, 150);
+                return;
+              }
+              PDFKV._setPageDrawingFromUrl(pageNum, img, dc.width, dc.height);
+            }
+            tryApply(0);
           };
           img.src = dataUrl;
         });
@@ -2775,9 +2855,10 @@ var PDFKV = (function(){
     /* Sayfa yüklendikten sonra karalamalar Firebase'den alınsın */
     window._loadDrawingsFromFirebase();
 
-    /* ── 2. İSTATİSTİK KAYIT ── */
+    /* ── 2. İSTATİSTİK KAYIT (salt okunur modda devre dışı) ── */
     let _saveTimer = null;
     window._scheduleStatsSave = function() {
+      if (isReadOnly) return; /* öğretmen görüntüleme modunda kaydetme */
       clearTimeout(_saveTimer);
       _saveTimer = setTimeout(async () => {
         try {
