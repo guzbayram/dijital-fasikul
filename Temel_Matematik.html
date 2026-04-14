@@ -1082,7 +1082,7 @@ var PDFKV = (function(){
      ═══════════════════════════════════════════════════════ */
 
   var PADDING = 50;   /* sayfa kenarlarındaki boşluk (px) */
-  var MIN_SCALE = 0.25;
+  var MIN_SCALE = 0.1; /* dinamik olarak fitScale'e göre güncellenir */
   var MAX_SCALE = 4.0;
 
   /* Spacer boyutunu ölçeğe göre güncelle */
@@ -1140,8 +1140,13 @@ var PDFKV = (function(){
     var vp = el('pdf-viewport');
     if(!vp) return state.scale;
     var availW = vp.clientWidth  - PADDING * 2;
+    var availH = vp.clientHeight - PADDING * 2;
     var naturalVp = page.getViewport({scale:1});
-    return Math.min(availW / naturalVp.width, MAX_SCALE);
+    var scaleW = availW / naturalVp.width;
+    var scaleH = availH / naturalVp.height;
+    var fitScale = Math.min(scaleW, scaleH, MAX_SCALE);
+    MIN_SCALE = fitScale;
+    return fitScale;
   }
 
   function renderPage(num, keepPan){
