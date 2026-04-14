@@ -666,20 +666,26 @@
       <div id="kk-bento-grid"></div>
     </div>
 
-    <!-- Main Canvas (Free-pan + Zoomable area) -->
-    <div class="flex-grow bg-[#f4f6fa] overflow-hidden relative" id="pdf-scroll"
-         style="touch-action:none;">
-
-      <!-- Pan wrapper: absolutely positioned, moved via JS translateX/Y -->
-      <div id="zoom-wrapper" style="
-        position:absolute; top:0; left:0; width:100%; height:100%;
-        overflow:hidden;
-      ">
-        <!-- PDF Page: positioned freely inside the pan space -->
-        <div id="page-container" class="relative bg-white rounded-sm shadow-[0_8px_40px_rgba(0,0,0,0.04)] border-t-[6px] border-primary overflow-hidden"
-             style="position:absolute; top:50px; left:50px; transform-origin:top left;">
+    <!-- Main Canvas: standart scroll viewport -->
+    <div id="pdf-viewport" class="flex-grow bg-[#f4f6fa] relative"
+         style="overflow:scroll;touch-action:pan-x pan-y;">
+      <!--
+        #pdf-spacer: sayfanın ölçeklenmiş boyutuna + 100px padding'e göre boyutlandırılır.
+        Scroll bar bu eleman sayesinde oluşur.
+      -->
+      <div id="pdf-spacer" style="position:relative;min-width:100%;min-height:100%;">
+        <!--
+          #page-container: sayfanın sol-üstünden 50px offset ile başlar.
+          transform-origin:top left + scale(s) uygulanır.
+          Spacer boyutu ölçeğe göre güncellenir → doğal scroll çalışır.
+        -->
+        <div id="page-container"
+             class="relative bg-white rounded-sm shadow-[0_8px_40px_rgba(0,0,0,0.04)] border-t-[6px] border-primary overflow-hidden"
+             style="position:absolute;top:50px;left:50px;transform-origin:top left;">
           <canvas id="pdf-canvas" class="block"></canvas>
-          <canvas id="draw-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;cursor:grab;z-index:10;"></canvas>
+          <canvas id="draw-canvas"
+                  style="position:absolute;top:0;left:0;width:100%;height:100%;
+                         pointer-events:all;cursor:crosshair;z-index:10;touch-action:none;"></canvas>
         </div>
       </div>
     </div>
@@ -1066,31 +1072,79 @@ var PDFKV = (function(){
     });
   })();
 
-  /* ── PAN STATE ── */
-  if(typeof state.panX==='undefined')state.panX=16;
-  if(typeof state.panY==='undefined')state.panY=16;
+  /* ═══════════════════════════════════════════════════════
+     VIEWPORT / ZOOM  —  Endüstri standardı yaklaşım
+     -------------------------------------------------------
+     • #pdf-viewport  : overflow:scroll → doğal kaydırma
+     • #pdf-spacer    : ölçeklenmiş içeriğin tam boyutu
+     • #page-container: transform:scale(s) top-left origin
+     • Zoom = spacer yeniden boyutlandır + scroll offset koru
+     ═══════════════════════════════════════════════════════ */
 
-  function applyPan(){
-    var pc=el('page-container');
-    if(!pc)return;
-    pc.style.left=state.panX+'px';
-    pc.style.top=state.panY+'px';
+  var PADDING = 50;   /* sayfa kenarlarındaki boşluk (px) */
+  var MIN_SCALE = 0.25;
+  var MAX_SCALE = 4.0;
+
+  /* Spacer boyutunu ölçeğe göre güncelle */
+  function updateSpacer(){
+    var pc  = el('page-container');
+    var sp  = el('pdf-spacer');
+    if(!pc||!sp)return;
+    var s   = state.cssScale;
+    /* sayfa CSS boyutu (canvas pixel / dpr) */
+    var cvs = el('pdf-canvas');
+    var dpr = window.devicePixelRatio||1;
+    var natW = cvs ? cvs.width/dpr  : pc.offsetWidth;
+    var natH = cvs ? cvs.height/dpr : pc.offsetHeight;
+    sp.style.width  = (natW * s + PADDING * 2) + 'px';
+    sp.style.height = (natH * s + PADDING * 2) + 'px';
+    pc.style.transform = 'scale(' + s + ')';
   }
 
+  /* Scroll'u sol-üst başlangıca sıfırla (50px boşlukla) */
+  function resetScrollToOrigin(){
+    var vp = el('pdf-viewport');
+    if(vp){ vp.scrollLeft = 0; vp.scrollTop = 0; }
+  }
+
+  /* Odak noktasını koruyarak zoom uygula
+     focalX/Y: pdf-viewport'un client rect'e göre koordinat */
+  function applyZoomAt(newScale, focalX, focalY){
+    var vp  = el('pdf-viewport');
+    if(!vp) return;
+    var old = state.cssScale;
+    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+    /* viewport içindeki mutlak koordinat = scroll + focal */
+    var absX = vp.scrollLeft + focalX;
+    var absY = vp.scrollTop  + focalY;
+    /* ölçek değişim oranı */
+    var ratio = newScale / old;
+    state.cssScale = newScale;
+    updateSpacer();
+    /* scroll'u yeni ölçeğe göre ayarla: focal noktası sabit kalır */
+    vp.scrollLeft = absX * ratio - focalX;
+    vp.scrollTop  = absY * ratio - focalY;
+    showScaleHint(newScale);
+  }
+
+  /* Eski kodla uyumluluk için — sadece spacer günceller */
+  function applyPan(){ updateSpacer(); }
+
   function resetPanToOrigin(){
-    state.panX=50; state.panY=50;
-    applyPan();
+    state.cssScale = state.cssScale || 1;
+    updateSpacer();
+    resetScrollToOrigin();
   }
 
   function computeFitScale(page){
-    var scrollEl=el('zoom-wrapper');if(!scrollEl)return state.scale;
-    var availW=scrollEl.clientWidth-100; /* 50px her iki yanda */
-    var naturalVp=page.getViewport({scale:1});
-    var scaleW=availW/naturalVp.width;
-    return Math.min(scaleW,4);
+    var vp = el('pdf-viewport');
+    if(!vp) return state.scale;
+    var availW = vp.clientWidth  - PADDING * 2;
+    var naturalVp = page.getViewport({scale:1});
+    return Math.min(availW / naturalVp.width, MAX_SCALE);
   }
 
-  function renderPage(num,keepPan){
+  function renderPage(num, keepPan){
     if(!state.pdfDoc||state.rendering)return;
     state.rendering=true;
     var pc=el('page-container');
@@ -1101,6 +1155,7 @@ var PDFKV = (function(){
       var ctx=canvas.getContext('2d');
       if(state.autoFit){
         state.scale=computeFitScale(page);
+        state.cssScale=1; /* fit ölçeği canvas render'ında kullanılır, CSS scale 1'den başlar */
       }
       var dpr=window.devicePixelRatio||1;
       var vp=page.getViewport({scale:state.scale*dpr});
@@ -1122,11 +1177,8 @@ var PDFKV = (function(){
             dc.style.height=(vp.height/dpr)+'px';
           }
           if(pc)pc.classList.remove('rendering');
-          state.cssScale=1;
-          if(pc)pc.style.transform='scale(1)';
-          /* PDF sol ust kosesi = canvas sol ust kosesi */
-          if(!keepPan)resetPanToOrigin();
-          else applyPan();
+          if(!keepPan) resetPanToOrigin();
+          else updateSpacer();
           state.rendering=false; state.currentPage=num;
           updatePageNav(); restoreDrawing(num);
         });
@@ -1163,183 +1215,144 @@ var PDFKV = (function(){
     renderPage(n);
   }
 
-  /* ── DRAW & FREE-PAN CANVAS ── */
+  /* ═══════════════════════════════════════════════════════
+     initDrawCanvas  —  Çizim + Zoom  (temiz sıfırdan)
+     -------------------------------------------------------
+     Zoom: Ctrl+Wheel / Pinch (odak noktası korunur)
+     Scroll: tarayıcının kendi overflow:scroll mekanizması
+     Çizim: draw-canvas üzerinde pointer events
+     Mod: drawEnabled=true → çizim | false → scroll serbest
+     ═══════════════════════════════════════════════════════ */
   function initDrawCanvas(){
-    var c=el('draw-canvas');if(!c)return;
-    var pdfScrollEl=el('pdf-scroll');
-    var pageContainer=el('page-container');
+    var drawCanvas = el('draw-canvas');
+    if(!drawCanvas) return;
+    var viewport = el('pdf-viewport');
 
-    state.cssScale=state.cssScale||1;
+    state.cssScale = state.cssScale || 1;
 
-    /* ── Canvas-space position from pointer event ── */
-    function pos(e){
-      var r=c.getBoundingClientRect(),sx=c.width/r.width,sy=c.height/r.height;
-      if(e.touches&&e.touches[0])return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
-      return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
-    }
-    function draw(e){
-      if(!state.isDrawing||!state.drawEnabled)return;
-      var p=pos(e),ctx=c.getContext('2d');
-      ctx.beginPath();ctx.moveTo(state.lastX,state.lastY);ctx.lineTo(p.x,p.y);
-      if(state.drawTool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=state.drawSize*6;ctx.strokeStyle='rgba(0,0,0,1)';}
-      else{ctx.globalCompositeOperation='source-over';ctx.lineWidth=state.drawSize;ctx.strokeStyle=state.drawColor;}
-      ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
-      state.lastX=p.x;state.lastY=p.y;
+    /* ─── Yardımcı: draw-canvas üzerindeki pointer → canvas piksel koordinatı ─── */
+    function canvasPos(e){
+      var src = (e.touches && e.touches[0]) ? e.touches[0] : e;
+      var r = drawCanvas.getBoundingClientRect();
+      var sx = drawCanvas.width  / r.width;
+      var sy = drawCanvas.height / r.height;
+      return { x: (src.clientX - r.left) * sx,
+               y: (src.clientY - r.top ) * sy };
     }
 
-    /* ── CSS scale (zoom) ── */
-    function applyZoom(){
-      if(pageContainer){
-        pageContainer.style.transform='scale('+state.cssScale+')';
-        pageContainer.style.transformOrigin='top left';
-      }
-    }
+    /* ─── Çizim ─── */
+    var drawing = false, lastPt = {x:0, y:0};
 
-    /* ── PAN: mouse drag when drawEnabled=false ── */
-    var pan={active:false,startX:0,startY:0,startPanX:0,startPanY:0};
-
-    /* Mouse events on the pdfScrollEl (background) AND the page itself */
-    pdfScrollEl.addEventListener('mousedown',function(e){
-      if(state.drawEnabled)return;
-      pan.active=true;
-      pan.startX=e.clientX; pan.startY=e.clientY;
-      pan.startPanX=state.panX; pan.startPanY=state.panY;
-      pdfScrollEl.style.cursor='grabbing';
-      e.preventDefault();
-    });
-    window.addEventListener('mousemove',function(e){
-      if(!pan.active)return;
-      state.panX=pan.startPanX+(e.clientX-pan.startX);
-      state.panY=pan.startPanY+(e.clientY-pan.startY);
-      applyPan();
-    });
-    window.addEventListener('mouseup',function(){
-      if(pan.active){pan.active=false;pdfScrollEl.style.cursor=state.drawEnabled?'default':'grab';}
-    });
-
-    /* Update cursor when draw mode toggles */
-    var _origToggle=state._drawToggleHook;
-    state._drawToggleHook=function(){
-      pdfScrollEl.style.cursor=state.drawEnabled?'default':'grab';
-      if(_origToggle)_origToggle();
-    };
-    pdfScrollEl.style.cursor='grab';
-
-    /* Draw canvas mouse events */
-    c.addEventListener('mousedown',function(e){
-      if(state.drawEnabled){
-        e.preventDefault();var p=pos(e);state.isDrawing=true;state.lastX=p.x;state.lastY=p.y;
+    function drawStroke(e){
+      if(!drawing || !state.drawEnabled) return;
+      var p   = canvasPos(e);
+      var ctx = drawCanvas.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(lastPt.x, lastPt.y);
+      ctx.lineTo(p.x, p.y);
+      if(state.drawTool === 'eraser'){
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth   = state.drawSize * 6;
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
       } else {
-        /* Pass pan to pdfScrollEl handler */
-        pan.active=true;
-        pan.startX=e.clientX; pan.startY=e.clientY;
-        pan.startPanX=state.panX; pan.startPanY=state.panY;
-        pdfScrollEl.style.cursor='grabbing';
-        e.preventDefault();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineWidth   = state.drawSize;
+        ctx.strokeStyle = state.drawColor;
       }
-    });
-    c.addEventListener('mousemove',function(e){if(state.drawEnabled)draw(e);});
-    c.addEventListener('mouseup',function(){state.isDrawing=false;});
-    c.addEventListener('mouseleave',function(){state.isDrawing=false;});
-
-    /* ── Touch handling ── */
-    var pinch={active:false,startDist:0,startScale:1};
-    var touch1={active:false,startX:0,startY:0,startPanX:0,startPanY:0,startTime:0};
-
-    function touchDist(e){
-      var dx=e.touches[0].clientX-e.touches[1].clientX;
-      var dy=e.touches[0].clientY-e.touches[1].clientY;
-      return Math.sqrt(dx*dx+dy*dy);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.stroke();
+      lastPt = p;
     }
 
-    c.addEventListener('touchstart',function(e){
-      if(e.touches.length===2){
-        e.preventDefault();
-        state.isDrawing=false; touch1.active=false;
-        pinch.active=true;
-        pinch.startDist=touchDist(e);
-        pinch.startScale=state.cssScale;
-      } else if(e.touches.length===1){
-        if(state.drawEnabled){
-          e.preventDefault();
-          var p=pos(e);state.isDrawing=true;state.lastX=p.x;state.lastY=p.y;
-          touch1.active=false;
-        } else {
-          e.preventDefault();
-          touch1.active=true;
-          touch1.startX=e.touches[0].clientX;
-          touch1.startY=e.touches[0].clientY;
-          touch1.startPanX=state.panX;
-          touch1.startPanY=state.panY;
-          touch1.startTime=Date.now();
-        }
-      }
-    },{passive:false});
-
-    c.addEventListener('touchmove',function(e){
-      if(e.touches.length===2&&pinch.active){
-        e.preventDefault();
-        var dist=touchDist(e);
-        state.cssScale=Math.min(4,Math.max(0.3,pinch.startScale*(dist/pinch.startDist)));
-        applyZoom();
-        showScaleHint(state.cssScale);
-      } else if(e.touches.length===1){
-        if(state.drawEnabled&&state.isDrawing){
-          e.preventDefault(); draw(e);
-        } else if(touch1.active){
-          e.preventDefault();
-          state.panX=touch1.startPanX+(e.touches[0].clientX-touch1.startX);
-          state.panY=touch1.startPanY+(e.touches[0].clientY-touch1.startY);
-          applyPan();
-        }
-      }
-    },{passive:false});
-
-    c.addEventListener('touchend',function(e){
-      if(e.touches.length<2&&pinch.active){
-        pinch.active=false;
-        if(state.cssScale<0.4){state.cssScale=1;applyZoom();}
-      }
-      if(e.touches.length===0){
-        state.isDrawing=false;
-        touch1.active=false;
-      }
-    },{passive:false});
-
-    /* ── Mouse wheel: plain = pan-Y, Ctrl = zoom ── */
-    if(pdfScrollEl){
-      pdfScrollEl.addEventListener('wheel',function(e){
-        e.preventDefault();
-        if(e.ctrlKey||e.metaKey){
-          var factor=e.deltaY>0?0.92:1.08;
-          state.cssScale=Math.min(4,Math.max(0.3,state.cssScale*factor));
-          applyZoom();
-          showScaleHint(state.cssScale);
-        } else {
-          /* Shift+wheel = horizontal pan, plain = vertical pan */
-          if(e.shiftKey){
-            state.panX-=e.deltaX||e.deltaY;
-          } else {
-            state.panY-=e.deltaY;
-            state.panX-=e.deltaX;
-          }
-          applyPan();
-        }
-      },{passive:false});
+    /* ─── Viewport'a göre focal koordinat hesapla ─── */
+    function focalInViewport(clientX, clientY){
+      var r = viewport.getBoundingClientRect();
+      return { x: clientX - r.left, y: clientY - r.top };
     }
 
-    /* Double-tap to reset zoom */
-    var lastTap=0;
-    c.addEventListener('touchend',function(e){
-      var now=Date.now();
-      if(now-lastTap<300&&e.changedTouches.length===1){
-        state.cssScale=1;applyZoom();
+    /* ════════════════════════
+       MOUSE EVENTS
+    ════════════════════════ */
+    drawCanvas.addEventListener('mousedown', function(e){
+      if(!state.drawEnabled) return;           /* scroll modunda → tarayıcı kendi scroll'unu yapar */
+      e.preventDefault();
+      drawing = true;
+      lastPt  = canvasPos(e);
+    });
+    window.addEventListener('mousemove', function(e){
+      if(!drawing) return;
+      drawStroke(e);
+    });
+    window.addEventListener('mouseup', function(){ drawing = false; });
+
+    /* ─── Ctrl + Mouse Wheel → Zoom (odak = fare konumu) ─── */
+    viewport.addEventListener('wheel', function(e){
+      if(!e.ctrlKey && !e.metaKey) return;    /* sade wheel → tarayıcı scroll'u */
+      e.preventDefault();
+      var factor = e.deltaY < 0 ? 1.1 : (1/1.1);
+      var focal  = focalInViewport(e.clientX, e.clientY);
+      applyZoomAt(state.cssScale * factor, focal.x, focal.y);
+    }, { passive: false });
+
+    /* ════════════════════════
+       TOUCH EVENTS
+       - 1 parmak + drawEnabled  → çizim
+       - 1 parmak + !drawEnabled → tarayıcı scroll (touch-action:pan)
+       - 2 parmak (pinch)        → zoom (odak = parmaklar ortası)
+    ════════════════════════ */
+    var pinch = { active: false, lastDist: 0, lastMidX: 0, lastMidY: 0 };
+
+    function ptDist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+    function ptMid(t) { return { x:(t[0].clientX+t[1].clientX)/2, y:(t[0].clientY+t[1].clientY)/2 }; }
+
+    drawCanvas.addEventListener('touchstart', function(e){
+      if(e.touches.length === 2){
+        e.preventDefault();
+        drawing = false;
+        pinch.active   = true;
+        pinch.lastDist = ptDist(e.touches);
+        var m = ptMid(e.touches);
+        pinch.lastMidX = m.x; pinch.lastMidY = m.y;
+      } else if(e.touches.length === 1 && state.drawEnabled){
+        e.preventDefault();
+        drawing = true;
+        lastPt  = canvasPos(e);
       }
-      lastTap=now;
+      /* 1 parmak + !drawEnabled: preventDefault YOK → touch-action:pan-x pan-y çalışır */
+    }, { passive: false });
+
+    drawCanvas.addEventListener('touchmove', function(e){
+      if(e.touches.length === 2 && pinch.active){
+        e.preventDefault();
+        var dist  = ptDist(e.touches);
+        var mid   = ptMid(e.touches);
+        var ratio = dist / pinch.lastDist;
+        var focal = focalInViewport(mid.x, mid.y);
+        applyZoomAt(state.cssScale * ratio, focal.x, focal.y);
+        pinch.lastDist = dist;
+        pinch.lastMidX = mid.x; pinch.lastMidY = mid.y;
+      } else if(e.touches.length === 1 && state.drawEnabled && drawing){
+        e.preventDefault();
+        drawStroke(e);
+      }
+    }, { passive: false });
+
+    drawCanvas.addEventListener('touchend', function(e){
+      if(e.touches.length < 2) pinch.active = false;
+      if(e.touches.length === 0) drawing = false;
     });
 
-    /* Initial cursor */
-    pdfScrollEl.style.cursor='grab';
+    /* ─── Çizim moduna göre draw-canvas touch-action güncelle ─── */
+    function syncCursor(){
+      drawCanvas.style.cursor      = state.drawEnabled ? 'crosshair' : 'grab';
+      /* draw modunda touch scroll'u engelle, pan modunda serbest bırak */
+      drawCanvas.style.touchAction = state.drawEnabled ? 'none' : 'pan-x pan-y';
+    }
+    syncCursor();
+
+    /* toggleDrawEnabled çağrıldığında cursor/touch-action güncelle */
+    var _origSync = state._syncCursor;
+    state._syncCursor = function(){ syncCursor(); if(_origSync) _origSync(); };
   }
 
   /* Scale hint overlay */
@@ -1385,15 +1398,12 @@ var PDFKV = (function(){
     state.drawEnabled=!state.drawEnabled;
     var btn=el('draw-toggle');
     if(btn){var ic=btn.querySelector('.material-symbols-outlined');if(ic)ic.textContent=state.drawEnabled?'lock_open':'lock';}
-    var c=el('draw-canvas');
-    if(c)c.style.cursor=state.drawEnabled?'crosshair':'grab';
-    var ps=el('pdf-scroll');
-    if(ps)ps.style.cursor=state.drawEnabled?'default':'grab';
-    /* sync new toggle button */
+    /* pan-draw toggle button */
     var panIcon=el('pan-draw-icon');
     var panLabel=el('pan-draw-label');
     if(panIcon)panIcon.textContent=state.drawEnabled?'edit':'pan_tool';
     if(panLabel)panLabel.textContent=state.drawEnabled?'ÇİZ':'KAYDIRMA';
+    if(state._syncCursor) state._syncCursor();
   }
 
   /* ── SECTIONS & TABS ── */
