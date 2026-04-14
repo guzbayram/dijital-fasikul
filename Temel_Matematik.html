@@ -665,7 +665,7 @@
         position:absolute; top:0; left:0; width:100%; height:100%;
         display:flex; flex-direction:column; align-items:center;
         overflow:auto; scrollbar-width:none; -ms-overflow-style:none;
-        padding: 24px 40px 40px 40px; box-sizing:border-box;
+        padding: 16px; box-sizing:border-box;
       ">
         <style>#zoom-wrapper::-webkit-scrollbar{display:none;}</style>
         <!-- PDF Page -->
@@ -1019,12 +1019,12 @@ var PDFKV = (function(){
 
   function computeFitScale(page){
     var scrollEl=el('zoom-wrapper');if(!scrollEl)return state.scale;
-    var availW=scrollEl.clientWidth - 80;
-    var availH=scrollEl.clientHeight - 80;
+    var availW=scrollEl.clientWidth - 32;
+    var availH=scrollEl.clientHeight - 32;
     var naturalVp=page.getViewport({scale:1});
     var scaleW=availW/naturalVp.width;
     var scaleH=availH/naturalVp.height;
-    return Math.min(scaleW, scaleH, 2);
+    return Math.min(scaleW, scaleH, 3);
   }
 
   function renderPage(num){
