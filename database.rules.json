@@ -2,8 +2,16 @@
   "rules": {
     "drawings": {
       "$uid": {
-        ".read": "auth != null",
-        ".write": "auth != null && auth.uid == $uid"
+        "meta": {
+          ".read": true,
+          ".write": "auth != null && auth.uid == $uid"
+        },
+        "strokes": {
+          ".read": true,
+          "$strokeId": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        }
       }
     }
   }

@@ -104,7 +104,6 @@
     cursor: crosshair;
   }
   #draw-canvas.active { pointer-events: all; }
-  .dt-sz.active { background:#503397 !important; color:#fff !important; }
 
   /* Anti-flicker for zoom */
   #page-container {
@@ -477,14 +476,25 @@
 </head>
 <body class="bg-[#f8f9fc] text-on-surface overflow-hidden">
 <!-- ══ UPLOAD OVERLAY (shown first) ══ -->
-<!-- PDF upload ekranı her zaman görünür -->
+<!-- GitHub Pages'de upload ekranı gizlenir; sadece local/desktop'ta görünür -->
+<script>
+(function(){
+  if(location.hostname.endsWith('github.io')){
+    document.addEventListener('DOMContentLoaded',function(){
+      var us=document.getElementById('upload-screen');
+      if(us) us.style.display='none';
+    });
+  }
+})();
+</script>
 <div id="upload-screen" class="fixed inset-0 z-50 flex flex-col">
   <header class="h-16 flex items-center justify-between px-8 bg-primary flex-shrink-0">
+    <button onclick="if(window.parent!==window){window.parent.postMessage('closeFrame','*');}else{window.location.href='index.html';}" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-right:12px;flex-shrink:0;">🏠 Ana Sayfa</button>
     <div>
       <div class="font-extrabold text-white text-lg italic tracking-tight" style="font-family:'Manrope',sans-serif;">PDF Kanvas</div>
       <div class="text-[10px] font-black text-white/60 uppercase tracking-[.2em]">Matematik Çalışma Alanı</div>
     </div>
-    <div></div>
+    <div class="flex items-center gap-3"></div>
   </header>
   <div class="flex-grow flex items-center justify-center bg-[#f0f0f5] cursor-pointer"
     ondragover="event.preventDefault()"
@@ -509,7 +519,6 @@
 
 <!-- Hidden file inputs -->
 <input type="file" id="inp-pdf" accept="application/pdf" class="hidden" onchange="PDFKV.loadPdfFile(this)">
-
 
 
 <!-- ══ KARNE MODAL ══ -->
@@ -596,7 +605,6 @@
     <div id="sb-default-tree" class="flex-1 flex flex-col items-center justify-center text-center px-4">
       <span class="material-symbols-outlined text-4xl text-primary/20 mb-3">upload_file</span>
       <p class="text-sm text-slate-400 font-medium leading-relaxed">PDF yükleyerek konu ağacını görüntüle</p>
-      <span id="sb-json-status-text" class="hidden text-xs text-emerald-600 font-bold mt-2"></span>
     </div>
 
 
@@ -606,29 +614,13 @@
   <main class="flex-grow flex flex-col relative bg-white" style="overflow:visible;min-width:0;">
 
     <!-- Tool Row (drawing tools) -->
-    <div class="px-6 py-3 flex items-center justify-between flex-shrink-0 border-b border-slate-50">
+    <div id="main-toolbar" class="px-6 py-3 flex items-center justify-between flex-shrink-0 border-b border-slate-50">
       <div class="flex items-center gap-2 text-slate-400">
         <span class="material-symbols-outlined text-base text-primary/40">menu_book</span>
         <span class="text-[11px] font-bold uppercase tracking-widest text-slate-300">PDF Kanvas</span>
       </div>
-      <!-- Toolbar page navigation (always visible) -->
-      <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button id="toolbar-prev-page" onclick="PDFKV.goPage(-1)" class="p-1.5 text-slate-400 hover:text-primary transition-colors disabled:opacity-30 rounded-lg hover:bg-slate-100"><span class="material-symbols-outlined text-base">chevron_left</span></button>
-        <span id="toolbar-page-info" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Sayfa 1 / 1</span>
-        <button id="toolbar-next-page" onclick="PDFKV.goPage(1)" class="p-1.5 text-slate-400 hover:text-primary transition-colors disabled:opacity-30 rounded-lg hover:bg-slate-100"><span class="material-symbols-outlined text-base">chevron_right</span></button>
-      </div>
       <!-- Drawing Tools -->
-      <div class="flex items-center gap-3 draw-toolbar">
-        <!-- Pan / Draw mode toggle -->
-        <button onclick="PDFKV.toggleDrawEnabled()" id="pan-draw-toggle-btn"
-          title="Kaydır / Çiz modunu değiştir"
-          style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:#f0e9ff;border:1.5px solid #503397;color:#503397;font-size:11px;font-weight:800;cursor:pointer;transition:all .15s;"
-          onmouseover="this.style.background='#503397';this.style.color='#fff';"
-          onmouseout="this.style.background='#f0e9ff';this.style.color='#503397';">
-          <span class="material-symbols-outlined" id="pan-draw-icon" style="font-size:15px;">pan_tool</span>
-          <span id="pan-draw-label">KAYDIRMA</span>
-        </button>
-        <div class="w-px h-5 bg-slate-200"></div>
+      <div class="flex items-center gap-3">
         <!-- Color dots -->
         <div class="flex items-center gap-1.5" id="color-picker-inline">
           <button class="ann-dot w-5 h-5 rounded-full bg-black hover:scale-110 transition-transform" data-c="#000000" onclick="PDFKV.setColor(this)" style="outline:2px solid #503397;outline-offset:2px;"></button>
@@ -636,20 +628,6 @@
           <button class="ann-dot w-5 h-5 rounded-full bg-green-500 hover:scale-110 transition-transform" data-c="#22c55e" onclick="PDFKV.setColor(this)"></button>
           <button class="ann-dot w-5 h-5 rounded-full bg-red-500 hover:scale-110 transition-transform" data-c="#ef4444" onclick="PDFKV.setColor(this)"></button>
           <button class="ann-dot w-5 h-5 rounded-full bg-orange-500 hover:scale-110 transition-transform" data-c="#f97316" onclick="PDFKV.setColor(this)"></button>
-        </div>
-        <!-- Divider -->
-        <div class="w-px h-5 bg-slate-200"></div>
-        <!-- Pen thickness buttons -->
-        <div class="flex items-center gap-1">
-          <button class="dt-sz active bg-slate-100 hover:bg-slate-200 px-2 py-1.5 rounded-lg text-slate-500 text-[11px] font-extrabold transition-colors flex items-center justify-center" data-sz="2" onclick="PDFKV.setSize(this)" title="İnce">
-            <span class="block rounded-full bg-white" style="width:6px;height:6px;"></span>
-          </button>
-          <button class="dt-sz bg-slate-100 hover:bg-slate-200 px-2 py-1.5 rounded-lg text-slate-500 text-[11px] font-extrabold transition-colors flex items-center justify-center" data-sz="5" onclick="PDFKV.setSize(this)" title="Orta">
-            <span class="block rounded-full bg-black" style="width:12px;height:12px;"></span>
-          </button>
-          <button class="dt-sz bg-slate-100 hover:bg-slate-200 px-2 py-1.5 rounded-lg text-slate-500 text-[11px] font-extrabold transition-colors flex items-center justify-center" data-sz="10" onclick="PDFKV.setSize(this)" title="Kalın">
-            <span class="block rounded-full bg-black" style="width:18px;height:18px;"></span>
-          </button>
         </div>
         <!-- Divider -->
         <div class="w-px h-5 bg-slate-200"></div>
@@ -665,6 +643,27 @@
             <span class="material-symbols-outlined text-[15px]">delete</span>
           </button>
         </div>
+        <!-- Live badge slot -->
+        <div id="live-badge-slot" style="display:flex;align-items:center;"></div>
+      </div>
+    </div>
+
+    <!-- Öğretmen izleme banner'ı — JS tarafından doldurulur -->
+    <div id="teacher-viewer-bar" style="display:none;align-items:center;justify-content:space-between;
+      padding:10px 24px;background:linear-gradient(90deg,#1e3a5f,#2563eb);
+      color:#fff;flex-shrink:0;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#facc15;
+          animation:livePulse 1.2s ease-in-out infinite;display:inline-block;flex-shrink:0;"></span>
+        <span style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:800;letter-spacing:.02em;">
+          🎓 ÖĞRETMEN GÖRÜNÜMÜ — Canlı İzleme
+        </span>
+        <span id="viewer-student-label" style="background:rgba(255,255,255,.15);border-radius:99px;
+          padding:2px 12px;font-size:11px;font-weight:700;letter-spacing:.05em;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;opacity:.85;">
+        <span class="material-symbols-outlined" style="font-size:14px;">visibility</span>
+        Salt izleme modu — çizim devre dışı
       </div>
     </div>
 
@@ -687,26 +686,23 @@
       <div id="kk-bento-grid"></div>
     </div>
 
-    <!-- Main Canvas: standart scroll viewport -->
-    <div id="pdf-viewport" class="flex-grow bg-[#f4f6fa] relative"
-         style="overflow:scroll;touch-action:pan-x pan-y;">
-      <!--
-        #pdf-spacer: sayfanın ölçeklenmiş boyutuna + 100px padding'e göre boyutlandırılır.
-        Scroll bar bu eleman sayesinde oluşur.
-      -->
-      <div id="pdf-spacer" style="position:relative;min-width:100%;min-height:100%;">
-        <!--
-          #page-container: sayfanın sol-üstünden 50px offset ile başlar.
-          transform-origin:top left + scale(s) uygulanır.
-          Spacer boyutu ölçeğe göre güncellenir → doğal scroll çalışır.
-        -->
-        <div id="page-container"
-             class="relative bg-white rounded-sm shadow-[0_8px_40px_rgba(0,0,0,0.04)] border-t-[6px] border-primary overflow-hidden"
-             style="position:absolute;top:20px;left:20px;transform-origin:top left;">
+    <!-- Main Canvas (Scrollable + Zoomable area) -->
+    <div class="flex-grow bg-[#f4f6fa] overflow-hidden relative" id="pdf-scroll"
+         style="touch-action:none;">
+
+      <!-- Zoom wrapper: CSS transform handles focal-point zoom -->
+      <div id="zoom-wrapper" style="
+        position:absolute; top:0; left:0; width:100%; height:100%;
+        display:flex; flex-direction:column; align-items:center;
+        overflow:auto; scrollbar-width:none; -ms-overflow-style:none;
+        padding: 24px 40px 40px 40px; box-sizing:border-box;
+      ">
+        <style>#zoom-wrapper::-webkit-scrollbar{display:none;}</style>
+        <!-- PDF Page -->
+        <div id="page-container" class="relative bg-white rounded-sm shadow-[0_8px_40px_rgba(0,0,0,0.04)] border-t-[6px] border-primary overflow-hidden flex-shrink-0"
+             style="transform-origin:top center; transition:transform 0.05s ease-out;">
           <canvas id="pdf-canvas" class="block"></canvas>
-          <canvas id="draw-canvas"
-                  style="position:absolute;top:0;left:0;width:100%;height:100%;
-                         pointer-events:all;cursor:crosshair;z-index:10;touch-action:none;"></canvas>
+          <canvas id="draw-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:all;cursor:crosshair;z-index:10;"></canvas>
         </div>
       </div>
     </div>
@@ -726,7 +722,7 @@
             <button class="acc-mcq-btn w-14 h-14 rounded-full border-2 border-slate-100 flex items-center justify-center font-extrabold text-lg text-slate-400 hover:border-primary hover:text-primary transition-all" data-opt="E" onclick="PDFKV.selectMcq(this)">E</button>
           </div>
           <!-- Text answer row -->
-          <div id="ans-text" class="w-full" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+          <div id="ans-text" class="hidden w-full" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
             <!-- Question number badge -->
             <div id="q-num" style="flex-shrink:0; width:32px; height:32px; border-radius:50%; background:#503397; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:11px;">S1</div>
             <!-- Question text -->
@@ -820,8 +816,8 @@ var PDFKV = (function(){
 
   var state = {
     pdfDoc:null, currentPage:1, totalPages:0, scale:1.5, rendering:false, autoFit:true,
-    drawEnabled:false, drawTool:'pen', drawColor:'#1a1a2e', drawSize:2,
-    isDrawing:false, lastX:0, lastY:0, pageDrawings:{}, pageDrawingImgs:{},
+    drawEnabled:true, drawTool:'pen', drawColor:'#1a1a2e', drawSize:2,
+    isDrawing:false, lastX:0, lastY:0, pageDrawings:{},
     currentTab:'hocan', currentSection:null, gunFilter:0,
     sections:{hocan:[],ara:[],test:[]}, sectionStates:{},
     totalCorrect:0, totalWrong:0, totalAnswered:0, gunStats:{},
@@ -874,8 +870,12 @@ var PDFKV = (function(){
   }
 
   /* ── JSON LOADING ── */
-  function _processJsonData(data, sourceName){
-    try{
+  function loadJsonFile(input){
+    var file=input.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var data=JSON.parse(e.target.result);
         var secs={hocan:[],ara:[],test:[]};
         var meta={};
         if(data.meta) meta=data.meta;
@@ -997,225 +997,94 @@ var PDFKV = (function(){
         else state.kkJsonDays=null;
         state.jsonMeta=meta;
         state.jsonLoaded=true;
-        var name=meta.title||sourceName||'JSON';
-        /* Tüm JSON durum göstergelerini güncelle */
-        ['uz-json-status','sb-json-status'].forEach(function(id){
-          var s=el(id);if(s)s.style.display='flex';
-        });
-        ['uz-json-status-text','sb-json-status-text'].forEach(function(id){
-          var s=el(id);if(s)s.textContent=name+' yüklendi ✓';
-        });
-        var jb=el('btn-load-json');if(jb)jb.classList.add('success');
+        var name=meta.title||file.name;
         var jb2=el('btn-json-upload');
         if(jb2){jb2.style.background='var(--green-light)';jb2.style.borderColor='var(--green)';jb2.style.color='var(--green)';}
         /* Bölümleri yeni JSON verisiyle yeniden başlat */
         state.sectionStates={};
         initSections();
         renderProgressCard();
-    }catch(err){alert('JSON yüklenirken hata: '+err.message);}
-  }
-
-  function loadJsonFile(input){
-    var file=input.files[0];if(!file)return;
-    var reader=new FileReader();
-    reader.onload=function(e){
-      try{
-        var data=JSON.parse(e.target.result);
-        _processJsonData(data, file.name);
       }catch(err){alert('JSON yüklenirken hata: '+err.message);}
     };
     reader.readAsText(file);
   }
 
   /* ── PDF LOADING ── */
-
-  /* IndexedDB yardımcıları — PDF'i tarayıcıda saklar */
-  var IDB_NAME='pdfkv_cache', IDB_STORE='pdfs', IDB_KEY='last_pdf';
-  function idbOpen(cb){
-    var req=indexedDB.open(IDB_NAME,1);
-    req.onupgradeneeded=function(e){e.target.result.createObjectStore(IDB_STORE);};
-    req.onsuccess=function(e){cb(null,e.target.result);};
-    req.onerror=function(e){cb(e);};
-  }
-  function idbSave(data){
-    idbOpen(function(err,db){
-      if(err)return;
-      var tx=db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).put(data,IDB_KEY);
-    });
-  }
-  function idbLoad(cb){
-    idbOpen(function(err,db){
-      if(err)return cb(null);
-      var tx=db.transaction(IDB_STORE,'readonly');
-      var req=tx.objectStore(IDB_STORE).get(IDB_KEY);
-      req.onsuccess=function(e){cb(e.target.result||null);};
-      req.onerror=function(){cb(null);};
-    });
-  }
-  function idbClear(){
-    idbOpen(function(err,db){
-      if(err)return;
-      var tx=db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).delete(IDB_KEY);
-    });
-  }
-
-  function _startPdfDoc(data){
-    pdfjsLib.getDocument({data:data}).promise.then(function(doc){
-      state.pdfDoc=doc;state.totalPages=doc.numPages;state.currentPage=1;
-      el('upload-screen').style.display='none';
-      var vs=el('viewer-section');
-      if(vs){vs.classList.remove('hidden');vs.classList.add('flex');}
-      var sta=el('sb-tabs-area');if(sta){sta.classList.remove('hidden');sta.classList.add('flex');}
-      var sdt=el('sb-default-tree');if(sdt)sdt.classList.add('hidden');
-      var cpb=el('btn-change-pdf');if(cpb)cpb.style.display='';
-      initSections();
-      renderPage(1);
-      initDrawCanvas();
-      updatePageNav();
-      renderTopicTree();
-      renderProgressCard();
-    }).catch(function(err){alert('PDF yüklenirken hata: '+err.message);});
-  }
-
   function loadPdfFile(input){
     var file=input.files[0];if(!file)return;
+    // Show filename
+    
+    
     var cpb=el('btn-change-pdf');if(cpb)cpb.style.display='';
     var reader=new FileReader();
     reader.onload=function(e){
       var data=new Uint8Array(e.target.result);
-      idbSave(data); /* tarayıcıda sakla */
-      _startPdfDoc(data);
+      pdfjsLib.getDocument({data:data}).promise.then(function(doc){
+        state.pdfDoc=doc;state.totalPages=doc.numPages;state.currentPage=1;
+        // Switch layout
+        el('upload-screen').style.display='none';
+        var vs=el('viewer-section');
+        if(vs){vs.classList.remove('hidden');vs.classList.add('flex');}
+
+        // sb-upload-zone removed
+        var sta=el('sb-tabs-area');if(sta){sta.classList.remove('hidden');sta.classList.add('flex');}var sdt=el('sb-default-tree');if(sdt)sdt.classList.add('hidden');
+        initSections();
+        renderPage(1);
+        initDrawCanvas();
+        updatePageNav();
+        renderTopicTree();
+        renderProgressCard();
+      }).catch(function(err){alert('PDF yüklenirken hata: '+err.message);});
     };
     reader.readAsArrayBuffer(file);
   }
 
-  /* Sayfa açılınca önbelleği kontrol et */
-  (function tryRestorePdf(){
-    idbLoad(function(data){
-      if(!data)return; /* önbellekte yok, upload ekranı görünür kalır */
-      _startPdfDoc(data);
-    });
-  })();
-
-  /* ═══════════════════════════════════════════════════════
-     VIEWPORT / ZOOM  —  Endüstri standardı yaklaşım
-     -------------------------------------------------------
-     • #pdf-viewport  : overflow:scroll → doğal kaydırma
-     • #pdf-spacer    : ölçeklenmiş içeriğin tam boyutu
-     • #page-container: transform:scale(s) top-left origin
-     • Zoom = spacer yeniden boyutlandır + scroll offset koru
-     ═══════════════════════════════════════════════════════ */
-
-  var PADDING = 20;   /* sayfa kenarlarındaki boşluk (px) */
-  var MIN_SCALE = 0.1; /* dinamik olarak fitScale'e göre güncellenir */
-  var MAX_SCALE = 4.0;
-
-  /* Spacer boyutunu ölçeğe göre güncelle */
-  function updateSpacer(){
-    var pc  = el('page-container');
-    var sp  = el('pdf-spacer');
-    var vp  = el('pdf-viewport');
-    if(!pc||!sp||!vp)return;
-    var s   = state.cssScale;
-    var cvs = el('pdf-canvas');
-    var dpr = window.devicePixelRatio||1;
-    var natW = cvs ? cvs.width/dpr  : pc.offsetWidth;
-    var natH = cvs ? cvs.height/dpr : pc.offsetHeight;
-    var scaledW = natW * s;
-    var scaledH = natH * s;
-    sp.style.width  = (scaledW + PADDING * 2) + 'px';
-    sp.style.height = (scaledH + PADDING * 2) + 'px';
-    pc.style.transform = 'scale(' + s + ')';
-  }
-
-  /* Scroll'u sol-üst başlangıca sıfırla (50px boşlukla) */
-  function resetScrollToOrigin(){
-    var vp = el('pdf-viewport');
-    if(vp){ vp.scrollLeft = 0; vp.scrollTop = 0; }
-  }
-
-  /* Odak noktasını koruyarak zoom uygula
-     focalX/Y: pdf-viewport'un client rect'e göre koordinat */
-  function applyZoomAt(newScale, focalX, focalY){
-    var vp  = el('pdf-viewport');
-    if(!vp) return;
-    var old = state.cssScale;
-    newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
-    /* viewport içindeki mutlak koordinat = scroll + focal */
-    var absX = vp.scrollLeft + focalX;
-    var absY = vp.scrollTop  + focalY;
-    /* ölçek değişim oranı */
-    var ratio = newScale / old;
-    state.cssScale = newScale;
-    updateSpacer();
-    /* scroll'u yeni ölçeğe göre ayarla: focal noktası sabit kalır */
-    vp.scrollLeft = absX * ratio - focalX;
-    vp.scrollTop  = absY * ratio - focalY;
-    showScaleHint(newScale);
-  }
-
-  /* Eski kodla uyumluluk için — sadece spacer günceller */
-  function applyPan(){ updateSpacer(); }
-
-  function resetPanToOrigin(){
-    state.cssScale = state.cssScale || 1;
-    updateSpacer();
-    resetScrollToOrigin();
-  }
-
   function computeFitScale(page){
-    var vp = el('pdf-viewport');
-    if(!vp) return state.scale;
-    var availW = vp.clientWidth  - PADDING * 2;
-    var availH = vp.clientHeight - PADDING * 2;
-    var naturalVp = page.getViewport({scale:1});
-    var scaleW = availW / naturalVp.width;   /* genislige gore: sol+sag 10px bosluk */
-    var scaleH = availH / naturalVp.height;  /* yukseklige gore: tam sigdirma */
-    /* Minimum zoom = her iki boyuta gore tam sigdirma (kullanici bundan kucuk yapamaz) */
-    MIN_SCALE = Math.min(scaleW, scaleH, MAX_SCALE);
-    /* Normal acilis/konu secimi: sadece genislik doldurulsun */
-    return Math.min(scaleW, MAX_SCALE);
+    var scrollEl=el('zoom-wrapper');if(!scrollEl)return state.scale;
+    var availW=scrollEl.clientWidth - 80;
+    var availH=scrollEl.clientHeight - 80;
+    var naturalVp=page.getViewport({scale:1});
+    var scaleW=availW/naturalVp.width;
+    var scaleH=availH/naturalVp.height;
+    return Math.min(scaleW, scaleH, 2);
   }
 
-  function renderPage(num, keepPan){
+  function renderPage(num){
     if(!state.pdfDoc||state.rendering)return;
     state.rendering=true;
     var pc=el('page-container');
-    if(pc)pc.classList.add('rendering');
+    if(pc) pc.classList.add('rendering');
     saveCurrentDrawing();
     state.pdfDoc.getPage(num).then(function(page){
       var canvas=el('pdf-canvas');
       var ctx=canvas.getContext('2d');
+      /* Auto-fit: only compute on first render or if scale is still default */
       if(state.autoFit){
         state.scale=computeFitScale(page);
-        state.cssScale=1; /* fit ölçeği canvas render'ında kullanılır, CSS scale 1'den başlar */
       }
-      var dpr=window.devicePixelRatio||1;
-      var vp=page.getViewport({scale:state.scale*dpr});
+      var vp=page.getViewport({scale:state.scale});
+      /* Resize canvases off-screen then paint — prevents mid-render blank flash */
       var offscreen=document.createElement('canvas');
       offscreen.width=vp.width; offscreen.height=vp.height;
-      offscreen.style.width=(vp.width/dpr)+'px';
-      offscreen.style.height=(vp.height/dpr)+'px';
       var offCtx=offscreen.getContext('2d');
       page.render({canvasContext:offCtx,viewport:vp}).promise.then(function(){
+        /* Swap in one frame */
         requestAnimationFrame(function(){
           canvas.width=vp.width; canvas.height=vp.height;
-          canvas.style.width=(vp.width/dpr)+'px';
-          canvas.style.height=(vp.height/dpr)+'px';
           ctx.drawImage(offscreen,0,0);
           var dc=el('draw-canvas');
-          if(dc){
-            dc.width=vp.width; dc.height=vp.height;
-            dc.style.width=(vp.width/dpr)+'px';
-            dc.style.height=(vp.height/dpr)+'px';
-          }
-          if(pc)pc.classList.remove('rendering');
-          if(!keepPan) resetPanToOrigin();
-          else updateSpacer();
+          if(dc){dc.width=vp.width;dc.height=vp.height;}
+          if(pc) pc.classList.remove('rendering');
+          /* Reset CSS zoom on page change */
+          state.cssScale=1;
+          if(pc){pc.style.transform='scale(1)';pc.style.marginBottom='0';}
+          /* Scroll to top */
+          var zw=el('zoom-wrapper');if(zw)zw.scrollTop=0;
           state.rendering=false; state.currentPage=num;
           updatePageNav(); restoreDrawing(num);
+          /* Canlı izleme: sayfa değişimini bildir */
+          document.dispatchEvent(new CustomEvent('pdfPageChanged', {detail:{page:num}}));
+          if(typeof window._liveNotifyPage==='function') window._liveNotifyPage(num);
         });
       });
     });
@@ -1224,56 +1093,19 @@ var PDFKV = (function(){
   function saveCurrentDrawing(){
     var c=el('draw-canvas');if(!c)return;
     state.pageDrawings[state.currentPage]=c.getContext('2d').getImageData(0,0,c.width,c.height);
-    /* Firebase'e kaydet */
-    if(c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
-      var dataUrl = c.toDataURL('image/png');
-      window._saveDrawingToFirebase(state.currentPage, dataUrl);
-    }
   }
   function restoreDrawing(num){
-    var c=el('draw-canvas');if(!c||c.width===0||c.height===0)return;
+    var c=el('draw-canvas');if(!c)return;
     var ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);
-    var d=state.pageDrawings[num];
-    if(!d) return;
-    if(d.width===c.width && d.height===c.height){
-      /* Boyutlar eşleşiyor — direkt koy */
-      ctx.putImageData(d,0,0);
-    } else if(state.pageDrawingImgs && state.pageDrawingImgs[num]){
-      /* Boyut uyuşmazlığı — orijinal img'den ölçekleyerek çiz ve güncelle */
-      ctx.drawImage(state.pageDrawingImgs[num],0,0,c.width,c.height);
-      state.pageDrawings[num]=ctx.getImageData(0,0,c.width,c.height);
-    } else {
-      /* Fallback */
-      ctx.putImageData(d,0,0);
-    }
-  }
-
-  /* Firebase'den gelen Image objesini pageDrawings state'ine kaydet */
-  function setPageDrawingFromUrl(pageNum, img, w, h){
-    /* Orijinal img'yi sakla — boyut uyuşmazlığında yeniden ölçekleme için */
-    state.pageDrawingImgs[pageNum] = img;
-    var dc = el('draw-canvas');
-    var cw = (dc && dc.width  > 0) ? dc.width  : (w || img.width);
-    var ch = (dc && dc.height > 0) ? dc.height : (h || img.height);
-    var offscreen = document.createElement('canvas');
-    offscreen.width = cw; offscreen.height = ch;
-    var ctx = offscreen.getContext('2d');
-    ctx.drawImage(img, 0, 0, cw, ch);
-    state.pageDrawings[pageNum] = ctx.getImageData(0, 0, cw, ch);
-    /* Aktif sayfaysa hemen göster */
-    if(pageNum === state.currentPage) restoreDrawing(pageNum);
+    if(state.pageDrawings[num])ctx.putImageData(state.pageDrawings[num],0,0);
   }
   function updatePageNav(){
     var info=el('page-info'); if(info)info.textContent='Sayfa '+state.currentPage+' / '+state.totalPages;
-    var tinfo=el('toolbar-page-info'); if(tinfo)tinfo.textContent='Sayfa '+state.currentPage+' / '+state.totalPages;
     var fn=el('float-page-num'); if(fn)fn.textContent=state.currentPage;
     var ft=el('float-page-total'); if(ft)ft.textContent=state.totalPages;
     var prev=el('prev-page'),next=el('next-page');
     if(prev)prev.disabled=state.currentPage<=1;
     if(next)next.disabled=state.currentPage>=state.totalPages;
-    var tprev=el('toolbar-prev-page'),tnext=el('toolbar-next-page');
-    if(tprev)tprev.disabled=state.currentPage<=1;
-    if(tnext)tnext.disabled=state.currentPage>=state.totalPages;
     var jump=el('page-jump');if(jump)jump.value=state.currentPage;
   }
   function goPage(dir){
@@ -1287,210 +1119,183 @@ var PDFKV = (function(){
     renderPage(n);
   }
 
-  /* ═══════════════════════════════════════════════════════
-     initDrawCanvas  —  Çizim + Zoom  (temiz sıfırdan)
-     -------------------------------------------------------
-     Zoom: Ctrl+Wheel / Pinch (odak noktası korunur)
-     Scroll: tarayıcının kendi overflow:scroll mekanizması
-     Çizim: draw-canvas üzerinde pointer events
-     Mod: drawEnabled=true → çizim | false → scroll serbest
-     ═══════════════════════════════════════════════════════ */
+  /* ── DRAW CANVAS ── */
   function initDrawCanvas(){
-    var drawCanvas = el('draw-canvas');
-    if(!drawCanvas) return;
-    var viewport = el('pdf-viewport');
+    var c=el('draw-canvas');if(!c)return;
+    var scrollEl=el('zoom-wrapper');
+    var pageContainer=el('page-container');
 
+    /* ── Canvas-space position from pointer event ── */
+    function pos(e){
+      var r=c.getBoundingClientRect(),sx=c.width/r.width,sy=c.height/r.height;
+      if(e.touches&&e.touches[0])return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};
+      return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+    }
+    /* ── Canlı çizim: aktif stroke noktaları ── */
+    state._liveStroke = [];
+
+    function draw(e){
+      if(!state.isDrawing||!state.drawEnabled)return;
+      var p=pos(e),ctx=c.getContext('2d');
+      ctx.beginPath();ctx.moveTo(state.lastX,state.lastY);ctx.lineTo(p.x,p.y);
+      if(state.drawTool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=state.drawSize*6;ctx.strokeStyle='rgba(0,0,0,1)';}
+      else{ctx.globalCompositeOperation='source-over';ctx.lineWidth=state.drawSize;ctx.strokeStyle=state.drawColor;}
+      ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+      state._liveStroke.push({x:Math.round(p.x),y:Math.round(p.y)});
+      state.lastX=p.x;state.lastY=p.y;
+    }
+
+    /* Stroke bitti → Firebase'e yaz */
+    function onStrokeEnd(){
+      state.isDrawing=false;
+      if(state._liveStroke && state._liveStroke.length>1 && typeof window._liveDrawSave==='function'){
+        window._liveDrawSave({
+          page: state.currentPage,
+          tool: state.drawTool,
+          color: state.drawColor,
+          size: state.drawSize,
+          pts: state._liveStroke.slice(),
+          cw: c.width, ch: c.height
+        });
+      }
+      state._liveStroke=[];
+    }
+
+    /* ── CSS zoom state ── */
     state.cssScale = state.cssScale || 1;
+    state.cssOffsetX = state.cssOffsetX || 0;
+    state.cssOffsetY = state.cssOffsetY || 0;
 
-    /* ─── Yardımcı: draw-canvas üzerindeki pointer → canvas piksel koordinatı ─── */
-    function canvasPos(e){
-      var src = (e.touches && e.touches[0]) ? e.touches[0] : e;
-      var r = drawCanvas.getBoundingClientRect();
-      var sx = drawCanvas.width  / r.width;
-      var sy = drawCanvas.height / r.height;
-      return { x: (src.clientX - r.left) * sx,
-               y: (src.clientY - r.top ) * sy };
-    }
-
-    /* ─── Çizim ─── */
-    var drawing = false, lastPt = {x:0, y:0};
-    /* Canlı karalama takibi (öğretmene anlık yayın için) */
-    var liveStrokePts = [];
-    var liveThrottleTimer = null;
-
-    function drawStroke(e){
-      if(!drawing || !state.drawEnabled) return;
-      var p   = canvasPos(e);
-      var ctx = drawCanvas.getContext('2d');
-      ctx.beginPath();
-      ctx.moveTo(lastPt.x, lastPt.y);
-      ctx.lineTo(p.x, p.y);
-      if(state.drawTool === 'eraser'){
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth   = state.drawSize * 6;
-        ctx.strokeStyle = 'rgba(0,0,0,1)';
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.lineWidth   = state.drawSize;
-        ctx.strokeStyle = state.drawColor;
-      }
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      ctx.stroke();
-      lastPt = p;
-      /* Canlı nokta birikimi:
-         - Minimum 3px hareket eşiği: gereksiz noktaları atla (payload küçülür)
-         - Dizi 400'ü aşarsa sondaki 200 noktayı tut (payload sabit kalır)
-         - Her 30ms'de Firebase'e gönder */
-      var last = liveStrokePts.length ? liveStrokePts[liveStrokePts.length-1] : null;
-      if(!last || Math.abs(p.x-last[0]) > 3 || Math.abs(p.y-last[1]) > 3){
-        liveStrokePts.push([Math.round(p.x), Math.round(p.y)]);
-        if(liveStrokePts.length > 400) liveStrokePts = liveStrokePts.slice(-200);
-      }
-      if(!liveThrottleTimer){
-        liveThrottleTimer = setTimeout(function(){
-          liveThrottleTimer = null;
-          if(liveStrokePts.length > 0 && typeof window._sendLiveStroke === 'function'){
-            var dc2 = el('draw-canvas');
-            window._sendLiveStroke({
-              page:  state.currentPage,
-              pts:   liveStrokePts.slice(),
-              color: state.drawColor,
-              size:  state.drawSize,
-              tool:  state.drawTool,
-              w:     dc2 ? dc2.width  : 1000,
-              h:     dc2 ? dc2.height : 1400
-            });
-          }
-        }, 30);
+    function applyTransform(){
+      if(pageContainer){
+        pageContainer.style.transform='scale('+state.cssScale+')';
+        pageContainer.style.transformOrigin='top center';
+        pageContainer.style.marginBottom = ((state.cssScale - 1) * pageContainer.offsetHeight / 2) + 'px';
       }
     }
 
-    /* ─── Viewport'a göre focal koordinat hesapla ─── */
-    function focalInViewport(clientX, clientY){
-      var r = viewport.getBoundingClientRect();
-      return { x: clientX - r.left, y: clientY - r.top };
+    function resetCssZoom(){
+      state.cssScale=1;
+      applyTransform();
     }
 
-    /* ════════════════════════
-       MOUSE EVENTS
-    ════════════════════════ */
-    drawCanvas.addEventListener('mousedown', function(e){
-      if(!state.drawEnabled) return;           /* scroll modunda → tarayıcı kendi scroll'unu yapar */
-      e.preventDefault();
-      drawing = true; state.isDrawing = true;
-      lastPt  = canvasPos(e);
-      liveStrokePts = []; /* yeni çizgiye başlarken sıfırla */
-      liveStrokePts.push([Math.round(lastPt.x), Math.round(lastPt.y)]);
-    });
-    window.addEventListener('mousemove', function(e){
-      if(!drawing) return;
-      drawStroke(e);
-    });
-    window.addEventListener('mouseup', function(){
-      if(drawing){
-        drawing = false; state.isDrawing = false;
-        liveStrokePts = []; /* çizgi bitti, biriktirmeyi sıfırla */
-        /* Her çizgi bitişinde Firebase'e kaydet (debounced) */
-        clearTimeout(state._drawSaveTimer);
-        state._drawSaveTimer = setTimeout(async function(){
-          var c = el('draw-canvas');
-          if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
-            var dataUrl = c.toDataURL('image/png');
-            await window._saveDrawingToFirebase(state.currentPage, dataUrl);
-            /* PNG kaydedildikten sonra canlı çizgiyi temizle */
-            if(typeof window._clearLiveStroke === 'function') window._clearLiveStroke();
-          }
-        }, 800);
-      } else {
-        drawing = false; state.isDrawing = false;
-      }
-    });
+    /* ── Mouse drawing ── */
+    c.addEventListener('mousedown',function(e){if(!state.drawEnabled)return;e.preventDefault();var p=pos(e);state.isDrawing=true;state.lastX=p.x;state.lastY=p.y;});
+    c.addEventListener('mousemove',function(e){if(state.drawEnabled)e.preventDefault();draw(e);});
+    c.addEventListener('mouseup',function(){onStrokeEnd();});
+    c.addEventListener('mouseleave',function(){onStrokeEnd();});
 
-    /* ─── Ctrl + Mouse Wheel → Zoom (odak = fare konumu) ─── */
-    viewport.addEventListener('wheel', function(e){
-      if(!e.ctrlKey && !e.metaKey) return;    /* sade wheel → tarayıcı scroll'u */
-      e.preventDefault();
-      var factor = e.deltaY < 0 ? 1.1 : (1/1.1);
-      var focal  = focalInViewport(e.clientX, e.clientY);
-      applyZoomAt(state.cssScale * factor, focal.x, focal.y);
-    }, { passive: false });
+    /* ── Touch handling ── */
+    var pinch={active:false,startDist:0,startScale:1,midX:0,midY:0};
+    var swipe={startY:0,startX:0,startTime:0,active:false};
 
-    /* ════════════════════════
-       TOUCH EVENTS
-       - 1 parmak + drawEnabled  → çizim
-       - 1 parmak + !drawEnabled → tarayıcı scroll (touch-action:pan)
-       - 2 parmak (pinch)        → zoom (odak = parmaklar ortası)
-    ════════════════════════ */
-    var pinch = { active: false, lastDist: 0, lastMidX: 0, lastMidY: 0 };
+    function touchMid(e){
+      return{
+        x:(e.touches[0].clientX+e.touches[1].clientX)/2,
+        y:(e.touches[0].clientY+e.touches[1].clientY)/2
+      };
+    }
+    function touchDist(e){
+      var dx=e.touches[0].clientX-e.touches[1].clientX;
+      var dy=e.touches[0].clientY-e.touches[1].clientY;
+      return Math.sqrt(dx*dx+dy*dy);
+    }
 
-    function ptDist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
-    function ptMid(t) { return { x:(t[0].clientX+t[1].clientX)/2, y:(t[0].clientY+t[1].clientY)/2 }; }
-
-    drawCanvas.addEventListener('touchstart', function(e){
-      if(e.touches.length === 2){
+    c.addEventListener('touchstart',function(e){
+      if(e.touches.length===2){
         e.preventDefault();
-        drawing = false; state.isDrawing = false;
-        pinch.active   = true;
-        pinch.lastDist = ptDist(e.touches);
-        var m = ptMid(e.touches);
-        pinch.lastMidX = m.x; pinch.lastMidY = m.y;
-      } else if(e.touches.length === 1 && state.drawEnabled){
-        e.preventDefault();
-        drawing = true; state.isDrawing = true;
-        lastPt  = canvasPos(e);
-        liveStrokePts = []; /* yeni dokunuş — sıfırla */
-        liveStrokePts.push([Math.round(lastPt.x), Math.round(lastPt.y)]);
-      }
-      /* 1 parmak + !drawEnabled: preventDefault YOK → touch-action:pan-x pan-y çalışır */
-    }, { passive: false });
-
-    drawCanvas.addEventListener('touchmove', function(e){
-      if(e.touches.length === 2 && pinch.active){
-        e.preventDefault();
-        var dist  = ptDist(e.touches);
-        var mid   = ptMid(e.touches);
-        var ratio = dist / pinch.lastDist;
-        var focal = focalInViewport(mid.x, mid.y);
-        applyZoomAt(state.cssScale * ratio, focal.x, focal.y);
-        pinch.lastDist = dist;
-        pinch.lastMidX = mid.x; pinch.lastMidY = mid.y;
-      } else if(e.touches.length === 1 && state.drawEnabled && drawing){
-        e.preventDefault();
-        drawStroke(e);
-      }
-    }, { passive: false });
-
-    drawCanvas.addEventListener('touchend', function(e){
-      if(e.touches.length < 2) pinch.active = false;
-      if(e.touches.length === 0){
-        if(drawing && state.drawEnabled){
-          liveStrokePts = []; /* çizgi bitti */
-          /* Touch çizimi bitti — Firebase'e kaydet */
-          clearTimeout(state._drawSaveTimer);
-          state._drawSaveTimer = setTimeout(async function(){
-            var c = el('draw-canvas');
-            if(c && c.width>0 && c.height>0 && typeof window._saveDrawingToFirebase === 'function'){
-              var dataUrl = c.toDataURL('image/png');
-              await window._saveDrawingToFirebase(state.currentPage, dataUrl);
-              if(typeof window._clearLiveStroke === 'function') window._clearLiveStroke();
-            }
-          }, 800);
+        state.isDrawing=false; swipe.active=false;
+        pinch.active=true;
+        pinch.startDist=touchDist(e);
+        pinch.startScale=state.cssScale;
+        var m=touchMid(e); pinch.midX=m.x; pinch.midY=m.y;
+      } else if(e.touches.length===1){
+        if(state.drawEnabled){
+          e.preventDefault();
+          var p=pos(e);state.isDrawing=true;state.lastX=p.x;state.lastY=p.y;
+          swipe.active=false;
+        } else {
+          /* swipe to scroll / page-flip */
+          swipe.active=true;
+          swipe.startY=e.touches[0].clientY;
+          swipe.startX=e.touches[0].clientX;
+          swipe.startTime=Date.now();
+          swipe.startScrollTop=scrollEl?scrollEl.scrollTop:0;
         }
-        drawing = false; state.isDrawing = false;
       }
-    });
+    },{passive:false});
 
-    /* ─── Çizim moduna göre draw-canvas touch-action güncelle ─── */
-    function syncCursor(){
-      drawCanvas.style.cursor      = state.drawEnabled ? 'crosshair' : 'grab';
-      /* draw modunda touch scroll'u engelle, pan modunda serbest bırak */
-      drawCanvas.style.touchAction = state.drawEnabled ? 'none' : 'pan-x pan-y';
+    c.addEventListener('touchmove',function(e){
+      if(e.touches.length===2&&pinch.active){
+        e.preventDefault();
+        var dist=touchDist(e);
+        var ratio=dist/pinch.startDist;
+        var newScale=Math.min(2, Math.max(0.5, pinch.startScale*ratio));
+        state.cssScale=newScale;
+        applyTransform();
+        showScaleHint(newScale);
+      } else if(e.touches.length===1){
+        if(state.drawEnabled&&state.isDrawing){
+          e.preventDefault(); draw(e);
+        } else if(swipe.active){
+          e.preventDefault();
+          var dy=swipe.startY - e.touches[0].clientY;
+          if(scrollEl) scrollEl.scrollTop = swipe.startScrollTop + dy;
+        }
+      }
+    },{passive:false});
+
+    c.addEventListener('touchend',function(e){
+      if(e.touches.length<2){
+        if(pinch.active){
+          pinch.active=false;
+          /* snap back if too small */
+          if(state.cssScale<0.6){ state.cssScale=1; applyTransform(); }
+        }
+      }
+      if(e.touches.length===0){
+        /* Detect fast swipe for page flip (when not zoomed) */
+        if(swipe.active && state.cssScale<=1.05){
+          var elapsed=Date.now()-swipe.startTime;
+          var dy=swipe.startY - (e.changedTouches[0]?e.changedTouches[0].clientY:swipe.startY);
+          var dx=swipe.startX - (e.changedTouches[0]?e.changedTouches[0].clientX:swipe.startX);
+          /* Fast vertical swipe and mostly vertical */
+          if(elapsed<400 && Math.abs(dy)>60 && Math.abs(dy)>Math.abs(dx)*1.5){
+            /* check if at scroll boundary */
+            var atBottom=scrollEl&&(scrollEl.scrollTop+scrollEl.clientHeight>=scrollEl.scrollHeight-10);
+            var atTop=scrollEl&&scrollEl.scrollTop<=5;
+            if(dy>0&&atBottom){ goPage(1); }
+            else if(dy<0&&atTop){ goPage(-1); }
+          }
+        }
+        onStrokeEnd(); swipe.active=false;
+      }
+    },{passive:false});
+
+    /* ── Mouse wheel: plain scroll or Ctrl+wheel zoom ── */
+    var pdfScrollParent=el('pdf-scroll');
+    if(pdfScrollParent){
+      pdfScrollParent.addEventListener('wheel',function(e){
+        if(e.ctrlKey||e.metaKey){
+          e.preventDefault();
+          var delta=e.deltaY>0?-0.01:0.01;
+          state.cssScale=Math.min(2,Math.max(0.5,Math.round((state.cssScale+delta)*100)/100));
+          applyTransform();
+          showScaleHint(state.cssScale);
+        }
+        /* plain wheel → let zoom-wrapper scroll naturally */
+      },{passive:false});
     }
-    syncCursor();
 
-    /* toggleDrawEnabled çağrıldığında cursor/touch-action güncelle */
-    var _origSync = state._syncCursor;
-    state._syncCursor = function(){ syncCursor(); if(_origSync) _origSync(); };
+    /* Double-tap to reset zoom */
+    var lastTap=0;
+    c.addEventListener('touchend',function(e){
+      var now=Date.now();
+      if(now-lastTap<300&&e.changedTouches.length===1){
+        state.cssScale=1; applyTransform();
+      }
+      lastTap=now;
+    });
   }
 
   /* Scale hint overlay */
@@ -1531,17 +1336,15 @@ var PDFKV = (function(){
     var c=el('draw-canvas');
     if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);
     delete state.pageDrawings[state.currentPage];
+    /* Canlı izleme: bu sayfanın stroke'larını Firebase'den sil */
+    if(typeof window._liveClearPage==='function') window._liveClearPage(state.currentPage);
   }
   function toggleDrawEnabled(){
     state.drawEnabled=!state.drawEnabled;
     var btn=el('draw-toggle');
     if(btn){var ic=btn.querySelector('.material-symbols-outlined');if(ic)ic.textContent=state.drawEnabled?'lock_open':'lock';}
-    /* pan-draw toggle button */
-    var panIcon=el('pan-draw-icon');
-    var panLabel=el('pan-draw-label');
-    if(panIcon)panIcon.textContent=state.drawEnabled?'edit':'pan_tool';
-    if(panLabel)panLabel.textContent=state.drawEnabled?'ÇİZ':'KAYDIRMA';
-    if(state._syncCursor) state._syncCursor();
+    var c=el('draw-canvas');
+    if(c)c.style.cursor=state.drawEnabled?'crosshair':'default';
   }
 
   /* ── SECTIONS & TABS ── */
@@ -1787,9 +1590,8 @@ var PDFKV = (function(){
     state.currentSection={id:sec.id,tab:tabName,sec:sec};
     if(!state.sectionStates[sec.id])
       state.sectionStates[sec.id]={cur:0,correct:{},attempts:{},selectedMcq:{}};
-    // Navigate to page in PDF — reset pan to top-left (konu degisiminde sol ust kose)
+    // Navigate to page in PDF
     if(sec.page&&state.pdfDoc)renderPage(sec.page);
-    else resetPanToOrigin();
     var qp=el('q-panel');if(qp){qp.classList.remove('hidden');qp.classList.add('flex');}
     var lbl=el('current-sec-label');if(lbl)lbl.textContent=sec.name;
     // Open this topic
@@ -2744,8 +2546,6 @@ var PDFKV = (function(){
     loadPdfFile:loadPdfFile,
     loadPdfFromData:loadPdfFromData,
     loadJsonFile:loadJsonFile,
-    loadJsonData:function(data){_processJsonData(data,'Temel Matematik');},
-    isPdfLoaded:function(){return !!state.pdfDoc;},
     goPage:goPage,
     jumpToPage:jumpToPage,
     setColor:setColor,
@@ -2769,28 +2569,10 @@ var PDFKV = (function(){
     _getSectionState:function(id){ return state.sectionStates[id]||null; },
     _getTotalCorrect:function(){ return state.totalCorrect; },
     _getTotalWrong:function(){ return state.totalWrong; },
-    _setPageDrawingFromUrl:function(pageNum,img,w,h){ setPageDrawingFromUrl(pageNum,img,w,h); },
-    _restoreSectionState: function(id, st) {
-      if (!state.sectionStates[id]) state.sectionStates[id] = {cur:0,correct:{},attempts:{},selectedMcq:{}};
-      var s = state.sectionStates[id];
-      s.correct = st.correct || {};
-      s.attempts = st.attempts || {};
-      if (st.cur !== undefined) s.cur = st.cur;
-      s.selectedMcq = st.selectedMcq || {};
-    },
-    _restoreTotals: function(c, w) {
-      state.totalCorrect = c;
-      state.totalWrong = w;
-      state.totalAnswered = c + w; /* approximate */
-      var ac = el('acc-correct'); if(ac) ac.textContent = c;
-      var aw = el('acc-wrong'); if(aw) aw.textContent = w;
-      var at = el('acc-total'); if(at) at.textContent = c + w;
-    },
     changePdf:function(){
-      state.pdfDoc=null;state.currentPage=1;state.pageDrawings={};state.pageDrawingImgs={};state.currentSection=null;state.autoFit=true;
+      state.pdfDoc=null;state.currentPage=1;state.pageDrawings={};state.currentSection=null;state.autoFit=true;
       state.totalCorrect=0;state.totalWrong=0;state.totalAnswered=0;state.gunStats={};
       state.sectionStates={};
-      idbClear(); /* önbellekten sil */
       el('upload-screen').style.display='flex';
       var vs4=el('viewer-section');if(vs4){vs4.classList.add('hidden');vs4.classList.remove('flex');}
       
@@ -2806,374 +2588,136 @@ var PDFKV = (function(){
 </script>
 
 <script type="module">
-/* ── FİREBASE ENTEGRASYONU ──
-   index.html üzerinden açıldığında:
+/* ════════════════════════════════════════════════════════════
+   FİREBASE ENTEGRASYONU v2 — Canlı Çizim İzleme Dahil
+   ─────────────────────────────────────────────────────────
    1. PDF otomatik yüklenir
-   2. Cevap sonrası istatistikler Firestore'a kaydedilir
-──────────────────────────────── */
+   2. İstatistikler Firestore'a kaydedilir
+   3. Öğrenci çizim yaparken → live_draw/{uid}/strokes'a yazar
+   4. Öğretmen / 2. cihaz → onSnapshot ile anlık alır, canvas'a çizer
+   5. Sayfa değişimi de senkronize edilir
+════════════════════════════════════════════════════════════ */
 (async function initFB() {
-  const ddUid = sessionStorage.getItem('dd_uid');
-  const ddFid = sessionStorage.getItem('dd_fid');
+  const ddUid  = sessionStorage.getItem('dd_uid');
+  const ddFid  = sessionStorage.getItem('dd_fid');
+  const ddRole = sessionStorage.getItem('dd_role');
+  const ddTid  = sessionStorage.getItem('dd_tid');   // öğrencinin öğretmeni (boş olabilir)
   if (!ddUid || !ddFid) return;
 
-  /* ── SALT OKUNUR MOD: Öğretmen/admin öğrenci karalamalarını görüntülüyor ──
-     dd_readonly='true' VE dd_viewer_name dolu olmalı — ikisi birden gerekli */
-  const isReadOnly = sessionStorage.getItem('dd_readonly') === 'true'
-                  && !!sessionStorage.getItem('dd_viewer_name');
-  const viewerName = sessionStorage.getItem('dd_viewer_name') || '';
-  if (isReadOnly) {
-    /* Çizim araç çubuğunu gizle */
-    const toolRow = document.querySelector('.px-6.py-3.flex.items-center.justify-between');
-    if (toolRow) toolRow.style.display = 'none';
-    /* Canvas çizimi devre dışı bırak */
-    const dc = document.getElementById('draw-canvas');
-    if (dc) { dc.style.pointerEvents = 'none'; dc.style.cursor = 'default'; }
-    /* Soru panelini gizle (öğretmen cevap giremiyor) */
-    const qPanel = document.getElementById('q-panel');
-    if (qPanel) qPanel.style.display = 'none';
-    /* Karne butonunu gizle */
-    const btnKarne = document.getElementById('btn-karne');
-    if (btnKarne) btnKarne.style.display = 'none';
-    /* Görüntüleme modu banner'ı */
-    const banner = document.createElement('div');
-    banner.id = 'readonly-banner';
-    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f59e0b,#f97316);color:#fff;padding:8px 20px;font-family:Manrope,sans-serif;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);';
-    banner.innerHTML = '<span>👁 GÖRÜNTÜLEME MODU — <strong>' + viewerName + '</strong> adlı öğrencinin karalamalarını görüyorsunuz</span><span style="opacity:.7;font-size:11px;">Salt okunur · Çizim devre dışı</span>';
-    document.body.prepend(banner);
-    const mainApp = document.getElementById('main-app');
-    if (mainApp) mainApp.style.marginTop = '38px';
+  /* ── Hedef UID: izleme modunda öğrencinin UID'si, normal modda kendi UID'i ── */
+  /* Eğer öğretmen rolüyse ve URL'de ?watch=STUDENT_UID varsa o öğrenciyi izle */
+  const urlParams   = new URLSearchParams(location.search);
+  const watchUid    = urlParams.get('watch') || null;
+  const isViewer    = !!watchUid;          // salt izleyici mi?
+  const targetUid   = watchUid || ddUid;   // kimin çizimi takip ediyoruz
 
-    /* ── CANLI ÇİZİM OVERLAY — öğretmen canlı stroke'ları görmek için üst canvas ── */
-    const liveCanvas = document.createElement('canvas');
-    liveCanvas.id = 'live-canvas';
-    liveCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:11;';
-    /* draw-canvas'ın parent'ına ekle */
-    const dcParent = (document.getElementById('draw-canvas') || {}).parentNode;
-    if (dcParent) { dcParent.style.position = 'relative'; dcParent.appendChild(liveCanvas); }
-  }
-
-  /* ── 1. PDF YÜKLEME — IndexedDB önbelleği (tryRestorePdf zaten çalışıyor) ──
-     PDF sunucuda değil (gitignore), kullanıcı bir kere yerel cihazından yükler,
-     IndexedDB'ye kaydedilir. Sonraki açılışlarda tryRestorePdf() otomatik yükler.
-     Eğer IndexedDB boşsa upload ekranı görünür kalır — müdahale etmiyoruz. ── */
-
-  /* ── 1b. JSON OTOMATİK YÜKLEME (sunucudan, küçük dosya) ── */
+  /* ── PDF OTOMATİK YÜKLEME ── */
   try {
-    const jsonRes = await fetch('Temel_Matematik.json');
-    if (jsonRes.ok) {
-      const jsonData = await jsonRes.json();
-      PDFKV.loadJsonData(jsonData);
+    const PDF_URL = 'https://lively-mousse-c4b810.netlify.app/Temel_Matematik/Temel_Matematik.pdf';
+    const res = await fetch(PDF_URL);
+    if (res.ok) {
+      const buf = await res.arrayBuffer();
+      PDFKV.loadPdfFromData(new Uint8Array(buf));
     }
-  } catch(e) { /* JSON sunucuda yoksa kullanıcı manuel yükler */ }
+  } catch(e) { console.warn('PDF auto-load error:', e); }
 
-  /* ── 2. FİREBASE İSTATİSTİK KAYIT + KARALAMA SYNC ── */
+  /* ── FİREBASE BAŞLAT ── */
   const FB_CFG = {
     apiKey: "AIzaSyCfkt5Pf82o2InXvcqRdkHiXEkD-18_u0M",
     authDomain: "dijital-fasikul.firebaseapp.com",
-    databaseURL: "https://dijital-fasikul-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "dijital-fasikul",
     storageBucket: "dijital-fasikul.firebasestorage.app",
     messagingSenderId: "127715156463",
-    appId: "1:127715156463:web:b69b4dc29b6762dc69561a"
+    appId: "1:127715156463:web:b69b4dc29b6762dc69561a",
+    databaseURL: (() => {
+      /* Firebase Console → Realtime Database URL'nizi buraya yazın.
+         EU bölgesi için: https://dijital-fasikul-default-rtdb.europe-west1.firebasedatabase.app
+         US bölgesi için: https://dijital-fasikul-default-rtdb.firebaseio.com            */
+      return 'https://dijital-fasikul-default-rtdb.europe-west1.firebasedatabase.app';
+    })()
   };
 
   try {
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const { getDatabase, ref, set, get, onValue, remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-    const { getAuth, signInWithEmailAndPassword: fbSignIn } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const { getFirestore, doc, getDoc, setDoc, addDoc, collection,
+            onSnapshot, deleteDoc, serverTimestamp, query, orderBy, limit }
+          = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { getDatabase, ref: rtRef, set: rtSet, update: rtUpdate,
+            onValue, remove: rtRemove, push: rtPush, serverTimestamp: rtTS }
+          = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    const { getAuth, signInWithEmailAndPassword, signInAnonymously }
+          = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
 
-    const apps = getApps();
-    const app = apps.find(a => a.name === 'tm-sts') || initializeApp(FB_CFG, 'tm-sts');
-    const db = getFirestore(app);
+    /* EU databaseURL — her seferinde yeni benzersiz app kur, eski instance'ları temizle */
+    const { deleteApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    for (const a of getApps()) {
+      if (a.name && a.name.startsWith('tm-rtdb-')) { try { await deleteApp(a); } catch(e) {} }
+    }
+    const EU_DB_URL = 'https://dijital-fasikul-default-rtdb.europe-west1.firebasedatabase.app';
+    const app  = initializeApp({ ...FB_CFG, databaseURL: EU_DB_URL }, 'tm-rtdb-' + Date.now());
+    const db   = getFirestore(app);
     const rtdb = getDatabase(app);
 
-    /* ── KİMLİK DOĞRULAMA (RTDB güvenlik kuralları için) ── */
-    const ddAuthEmail = sessionStorage.getItem('dd_auth_email');
-    const ddAuthPass  = sessionStorage.getItem('dd_auth_pass');
-    if (ddAuthEmail && ddAuthPass) {
-      try {
-        const auth = getAuth(app);
-        await fbSignIn(auth, ddAuthEmail, ddAuthPass);
-      } catch(authErr) { console.warn('FB auth error:', authErr.message); }
-    }
-
-    /* ── KARALAMA KAYDET (salt okunur modda devre dışı) ── */
-    window._saveDrawingToFirebase = async function(pageNum, dataUrl) {
-      if (isReadOnly) return; /* öğretmen görüntüleme modunda kaydetme */
-      if (!ddUid || !dataUrl) return;
-      try {
-        const path = ref(rtdb, 'drawings/' + ddUid + '/page_' + pageNum);
-        const devId = sessionStorage.getItem('_drawDeviceId') || '';
-        await set(path, { data: dataUrl, ts: Date.now(), deviceId: devId });
-      } catch(e) { console.warn('Drawing save error:', e); }
-    };
-
-    /* ── CANLI ÇİZGİ GÖNDER — her 50ms'de öğrencinin aktif stroke noktalarını RTDB'ye yaz ── */
-    window._sendLiveStroke = function(strokeData) {
-      if (isReadOnly || !ddUid || !strokeData) return;
-      try {
-        set(ref(rtdb, 'drawings/' + ddUid + '/live_stroke'), strokeData);
-      } catch(e) {}
-    };
-    /* ── CANLI ÇİZGİ TEMİZLE — PNG kaydedildikten sonra live_stroke düğümünü sil ── */
-    window._clearLiveStroke = function() {
-      if (isReadOnly || !ddUid) return;
-      try { remove(ref(rtdb, 'drawings/' + ddUid + '/live_stroke')); } catch(e) {}
-    };
-
-    /* ── KARALAMALAR YÜKLE ── */
-    window._loadDrawingsFromFirebase = async function() {
-      if (!ddUid) return;
-      try {
-        const path = ref(rtdb, 'drawings/' + ddUid);
-        const snap = await get(path);
-        if (!snap.exists()) return;
-        const drawings = snap.val();
-        Object.keys(drawings).forEach(function(key) {
-          const pageNum = parseInt(key.replace('page_', ''));
-          const dataUrl = drawings[key].data;
-          if (!dataUrl) return;
-          const img = new Image();
-          img.onload = function() {
-            /* PDF render tamamlanana kadar bekle (canvas doğru boyuta sahip olana kadar) */
-            function tryApply(attempts) {
-              const dc = document.getElementById('draw-canvas');
-              /* Canvas varsayılan 300px genişliğinden büyük olmalı (PDF render sonrası) */
-              if (!dc || (dc.width < 500 && attempts < 40)) {
-                setTimeout(function(){ tryApply(attempts+1); }, 150);
-                return;
-              }
-              PDFKV._setPageDrawingFromUrl(pageNum, img, dc.width, dc.height);
-            }
-            tryApply(0);
-          };
-          img.src = dataUrl;
-        });
-      } catch(e) { console.warn('Drawing load error:', e); }
-    };
-
-    /* Sayfa yüklendikten sonra karalamalar Firebase'den alınsın */
-    window._loadDrawingsFromFirebase();
-
-    /* ── İSTATİSTİK YÜKLE — farklı cihazdan giriş yapıldığında kurtarma ── */
-    if (!isReadOnly) {
-      (async function loadSavedStats() {
+    /* ── Firebase Auth: iframe içinde ayrı oturum açılması gerekiyor ── */
+    /* index.html'deki auth oturumu iframe'e geçmez; sessionStorage'dan bilgileri al */
+    const ddUsername = sessionStorage.getItem('dd_username') || '';
+    const ddPassword = sessionStorage.getItem('dd_password') || '';
+    const auth = getAuth(app);
+    /* Auth: önce email/password dene, başarısız olursa anonymous ile devam et
+       (database.rules.json'da okuma public yapıldı, yazma için auth gerekiyor) */
+    let authOk = false;
+    if (ddUsername && ddPassword) {
+      const emailSuffixes = ['@dijital-fasikul.com', '@dijital-defter.app', '@brngs.com', '@admin.com'];
+      for (const suffix of emailSuffixes) {
         try {
-          const statsSnap = await getDoc(doc(db, 'stats', ddUid));
-          if (!statsSnap.exists()) return;
-          const data = statsSnap.data();
-          const fasData = data[ddFid];
-          if (!fasData) return;
-          /* Bölüm detaylarını geri yükle */
-          const savedStates = fasData._states || {};
-          const sections = PDFKV._getSections();
-          let totalC = 0, totalW = 0;
-          sections.forEach(function(sec) {
-            const saved = savedStates[sec.id];
-            if (!saved) return;
-            PDFKV._restoreSectionState(sec.id, saved);
-            totalC += Object.keys(saved.correct||{}).filter(k=>saved.correct[k]).length;
-            let w = 0;
-            Object.keys(saved.attempts||{}).forEach(k => {
-              w += (saved.attempts[k]||[]).filter(v=>!v).length;
-            });
-            totalW += w;
-          });
-          PDFKV._restoreTotals(totalC, totalW);
-        } catch(e) { console.warn('Stats load error:', e); }
-      })();
+          await signInWithEmailAndPassword(auth, ddUsername + suffix, ddPassword);
+          authOk = true;
+          console.log('[FB] Auth OK:', ddUsername + suffix);
+          break;
+        } catch(e) { /* dene */ }
+      }
+    }
+    if (!authOk) {
+      try {
+        await signInAnonymously(auth);
+        console.log('[FB] Auth: anonymous (read-only)');
+      } catch(e) { console.warn('[FB] Auth failed:', e); }
     }
 
-    /* ── ÖĞRETMEN: GERÇEK ZAMANLI KARALAMA DİNLEYİCİLERİ ── */
-    if (isReadOnly) {
-      /* ─ Yardımcı: live-canvas'ı draw-canvas ile boyut eşitle ─ */
-      function syncLiveSize() {
-        const dc = document.getElementById('draw-canvas');
-        const lc = document.getElementById('live-canvas');
-        if (dc && lc && (lc.width !== dc.width || lc.height !== dc.height)) {
-          lc.width  = dc.width;
-          lc.height = dc.height;
-        }
-      }
+    /* ══════════════════════════════════════════
+       BÖLÜM A — İSTATİSTİK KAYIT
+    ══════════════════════════════════════════ */
 
-      /* ─ Canlı stroke dinleyici ─ */
-      onValue(ref(rtdb, 'drawings/' + ddUid + '/live_stroke'), function(snap) {
-        const lc = document.getElementById('live-canvas');
-        if (!lc) return;
-        syncLiveSize();
-        const ctx = lc.getContext('2d');
-        ctx.clearRect(0, 0, lc.width, lc.height);
-        if (!snap.exists()) return;
-        const data = snap.val();
-        /* Sadece mevcut sayfanın stroke'unu göster */
-        if (!data || data.page !== state.currentPage) return;
-        const pts = data.pts;
-        if (!pts || pts.length < 1) return;
-        const scaleX = lc.width  / (data.w || lc.width);
-        const scaleY = lc.height / (data.h || lc.height);
-        ctx.beginPath();
-        ctx.moveTo(pts[0][0] * scaleX, pts[0][1] * scaleY);
-        for (let i = 1; i < pts.length; i++) {
-          ctx.lineTo(pts[i][0] * scaleX, pts[i][1] * scaleY);
-        }
-        if (data.tool === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.lineWidth   = (data.size || 3) * 6;
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.lineWidth   = data.size || 3;
-          ctx.strokeStyle = data.color || '#000';
-        }
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        ctx.stroke();
-      });
-
-      /* ─ Kaydedilmiş sayfa PNG dinleyici — sayfa değiştiğinde yeniden abone ol ─ */
-      let _pageUnsub = null;
-      let _listenedPage = 0;
-      function subscribeCurrentPage() {
-        const pg = state.currentPage || 1;
-        if (_listenedPage === pg) return;
-        if (_pageUnsub) _pageUnsub();
-        _listenedPage = pg;
-        /* live-canvas'ı yeni sayfa için temizle */
-        const lc = document.getElementById('live-canvas');
-        if (lc) lc.getContext('2d').clearRect(0, 0, lc.width, lc.height);
-        _pageUnsub = onValue(ref(rtdb, 'drawings/' + ddUid + '/page_' + pg), function(snap) {
-          if (!snap.exists()) return;
-          const dataUrl = (snap.val() || {}).data;
-          if (!dataUrl) return;
-          const img = new Image();
-          img.onload = function() {
-            function tryApply(attempts) {
-              const dc = document.getElementById('draw-canvas');
-              if (!dc || (dc.width < 500 && attempts < 40)) {
-                setTimeout(function(){ tryApply(attempts + 1); }, 150);
-                return;
-              }
-              PDFKV._setPageDrawingFromUrl(pg, img, dc.width, dc.height);
-              /* Yeni PNG geldi — live-canvas temizle (stroke tamamlandı) */
-              const lc2 = document.getElementById('live-canvas');
-              if (lc2) lc2.getContext('2d').clearRect(0, 0, lc2.width, lc2.height);
-            }
-            tryApply(0);
-          };
-          img.src = dataUrl;
-        });
-      }
-      subscribeCurrentPage();
-      /* Öğretmen sayfayı değiştirdiğinde yeniden abone ol */
-      setInterval(subscribeCurrentPage, 800);
+    /* Oturum süresi takibi */
+    const _sessionStart = Date.now();
+    function _getSessionMinutes() {
+      return Math.round((Date.now() - _sessionStart) / 60000);
     }
 
-    /* ── ÖĞRENCİ: ÇAPRAZ CİHAZ ÇİZİM SENKRONIZASYONU ── */
-    if (!isReadOnly) {
-      /* Cihaz kimliği — aynı cihazdan gelen güncellemeleri atlamak için */
-      const deviceId = (function(){
-        let id = sessionStorage.getItem('_drawDeviceId');
-        if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('_drawDeviceId', id); }
-        return id;
-      })();
-
-      /* deviceId'yi live stroke payload'una ekle */
-      const _origSendLive = window._sendLiveStroke;
-      window._sendLiveStroke = function(strokeData) {
-        if (strokeData) strokeData.deviceId = deviceId;
-        if (_origSendLive) _origSendLive(strokeData);
-      };
-
-      /* Diğer cihazın canlı stroke'larını göster — live-canvas oluştur */
-      const xLiveCanvas = document.createElement('canvas');
-      xLiveCanvas.id = 'cross-live-canvas';
-      xLiveCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:11;';
-      const xDcParent = (document.getElementById('draw-canvas') || {}).parentNode;
-      if (xDcParent) xDcParent.appendChild(xLiveCanvas);
-
-      function syncCrossLiveSize() {
-        const dc = document.getElementById('draw-canvas');
-        const lc = document.getElementById('cross-live-canvas');
-        if (dc && lc && (lc.width !== dc.width || lc.height !== dc.height)) {
-          lc.width = dc.width; lc.height = dc.height;
-        }
+    /* Ana sayfaya activity gönder (fasikül kapanırken) */
+    function _sendActivity() {
+      const mins = _getSessionMinutes();
+      const q = (PDFKV._getTotalCorrect() || 0) + (PDFKV._getTotalWrong() || 0);
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'activity',
+          minutes: mins,
+          questions: q,
+          pages: 0
+        }, '*');
       }
-
-      /* Diğer cihazın canlı stroke'unu dinle */
-      onValue(ref(rtdb, 'drawings/' + ddUid + '/live_stroke'), function(snap) {
-        const lc = document.getElementById('cross-live-canvas');
-        if (!lc) return;
-        syncCrossLiveSize();
-        const ctx = lc.getContext('2d');
-        ctx.clearRect(0, 0, lc.width, lc.height);
-        if (!snap.exists()) return;
-        const data = snap.val();
-        if (!data || data.deviceId === deviceId) return; /* kendi stroke'u, atla */
-        if (data.page !== (state.currentPage || 1)) return;
-        const pts = data.pts;
-        if (!pts || pts.length < 1) return;
-        const scaleX = lc.width / (data.w || lc.width);
-        const scaleY = lc.height / (data.h || lc.height);
-        ctx.beginPath();
-        ctx.moveTo(pts[0][0] * scaleX, pts[0][1] * scaleY);
-        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0] * scaleX, pts[i][1] * scaleY);
-        if (data.tool === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.lineWidth = (data.size || 3) * 6;
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-        } else {
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.lineWidth = data.size || 3;
-          ctx.strokeStyle = data.color || '#000';
-        }
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        ctx.stroke();
-      });
-
-      /* Diğer cihazın kaydettiği sayfa PNG'sini senkronize et */
-      let _xPageUnsub = null, _xListenedPage = 0;
-      function subscribeCrossDevicePage() {
-        const pg = state.currentPage || 1;
-        if (_xListenedPage === pg) return;
-        if (_xPageUnsub) _xPageUnsub();
-        _xListenedPage = pg;
-        const lc = document.getElementById('cross-live-canvas');
-        if (lc) lc.getContext('2d').clearRect(0, 0, lc.width, lc.height);
-        _xPageUnsub = onValue(ref(rtdb, 'drawings/' + ddUid + '/page_' + pg), function(snap) {
-          if (!snap.exists()) return;
-          const val = snap.val() || {};
-          if (val.deviceId === deviceId) return; /* kendi kaydı, atla */
-          const dataUrl = val.data;
-          if (!dataUrl) return;
-          if (state.isDrawing) return; /* kullanıcı çiziyorsa uygulama */
-          const img = new Image();
-          img.onload = function() {
-            function tryApply(attempts) {
-              const dc = document.getElementById('draw-canvas');
-              if (!dc || (dc.width < 500 && attempts < 40)) { setTimeout(function(){ tryApply(attempts+1); }, 150); return; }
-              PDFKV._setPageDrawingFromUrl(pg, img, dc.width, dc.height);
-              const lc2 = document.getElementById('cross-live-canvas');
-              if (lc2) lc2.getContext('2d').clearRect(0, 0, lc2.width, lc2.height);
-            }
-            tryApply(0);
-          };
-          img.src = dataUrl;
-        });
-      }
-      subscribeCrossDevicePage();
-      setInterval(subscribeCrossDevicePage, 800);
     }
 
-    /* ── 2. İSTATİSTİK KAYIT (salt okunur modda devre dışı) ── */
+    /* Fasikül kapatılırken gönder */
+    window.addEventListener('beforeunload', _sendActivity);
+
     let _saveTimer = null;
     window._scheduleStatsSave = function() {
-      if (isReadOnly) return; /* öğretmen görüntüleme modunda kaydetme */
       clearTimeout(_saveTimer);
       _saveTimer = setTimeout(async () => {
         try {
           const allSecs = PDFKV._getSections();
           const sectionMap = {};
-          const allStates = {};
           allSecs.forEach(function(sec) {
             const st = PDFKV._getSectionState(sec.id);
             if (!st) return;
@@ -3183,29 +2727,281 @@ var PDFKV = (function(){
               w += (st.attempts[k] || []).filter(v => !v).length;
             });
             if (c || w) sectionMap[sec.name] = { correct: c, wrong: w };
-            if (c || w || Object.keys(st.attempts||{}).length) {
-              allStates[sec.id] = { correct: st.correct||{}, attempts: st.attempts||{}, cur: st.cur||0, selectedMcq: st.selectedMcq||{} };
-            }
           });
-
           const ref = doc(db, 'stats', ddUid);
           const snap = await getDoc(ref);
           const existing = snap.exists() ? snap.data() : {};
           const prev = existing[ddFid] || {};
+          const sessionMins = _getSessionMinutes();
+          const newMins = Math.max(prev.minutes || 0, sessionMins);
+
+          /* Günlük kayıt */
+          const today = new Date().toISOString().slice(0, 10);
+          const prevDaily = (existing.daily || {})[today] || { minutes: 0, questions: 0, pages: 0 };
+          const totalQ = PDFKV._getTotalCorrect() + PDFKV._getTotalWrong();
+          const newDaily = {
+            ...(existing.daily || {}),
+            [today]: {
+              minutes: Math.max(prevDaily.minutes || 0, sessionMins),
+              questions: Math.max(prevDaily.questions || 0, totalQ),
+              pages: prevDaily.pages || 0
+            }
+          };
 
           await setDoc(ref, {
             ...existing,
+            daily: newDaily,
             [ddFid]: {
               correct: PDFKV._getTotalCorrect(),
               wrong:   PDFKV._getTotalWrong(),
-              minutes: prev.minutes || 0,
-              sections: sectionMap,
-              _states: allStates
+              minutes: newMins,
+              sections: sectionMap
             }
           });
+
+          /* index.html'e de bildir */
+          _sendActivity();
         } catch(e) { console.warn('FB stats save error:', e); }
       }, 2000);
     };
+
+    /* ══════════════════════════════════════════
+       BÖLÜM B — CANLI ÇİZİM YAZMA (öğrenci / Yayıncı tarafı)
+       Realtime Database path: drawings/{uid}/meta   → {page, fid, ts}
+                               drawings/{uid}/strokes → push ile eklenir
+       Throttle: saniyede maks 25 paket (40ms)
+    ══════════════════════════════════════════ */
+    if (!isViewer) {
+      const metaWriteRef   = rtRef(rtdb, `drawings/${ddUid}/meta`);
+      const strokesWriteRef = rtRef(rtdb, `drawings/${ddUid}/strokes`);
+
+      /* Sayfa değişimini bildir */
+      window._liveNotifyPage = async function(pageNum) {
+        try {
+          await rtSet(metaWriteRef, {
+            page: pageNum,
+            fid:  ddFid,
+            ts:   Date.now()
+          });
+        } catch(e) { console.warn('RTDB page notify error:', e); }
+      };
+
+      /* Throttle yardımcısı: fn'yi en fazla delay ms'de bir çağırır */
+      function throttle(fn, delay) {
+        let last = 0, timer = null;
+        return function(...args) {
+          const now = Date.now();
+          const remaining = delay - (now - last);
+          if (remaining <= 0) {
+            last = now;
+            fn(...args);
+          } else {
+            clearTimeout(timer);
+            timer = setTimeout(() => { last = Date.now(); fn(...args); }, remaining);
+          }
+        };
+      }
+
+      /* Stroke kaydet — throttle ile saniyede max 25 paket */
+      const _doSendStroke = async function(stroke) {
+        if (!stroke || !stroke.pts || stroke.pts.length < 2) return;
+        try {
+          const strokeRef = rtPush(strokesWriteRef);
+          await rtSet(strokeRef, {
+            page:  stroke.page,
+            tool:  stroke.tool,
+            color: stroke.color,
+            size:  stroke.size,
+            cw:    stroke.cw,
+            ch:    stroke.ch,
+            pts:   stroke.pts,
+            ts:    Date.now()
+          });
+          /* Mevcut sayfayı da meta'da güncelle */
+          await rtUpdate(metaWriteRef, { page: stroke.page, ts: Date.now() });
+        } catch(e) { console.warn('RTDB draw save error:', e); }
+      };
+      window._liveDrawSave = throttle(_doSendStroke, 40); /* 40ms → ~25 fps */
+
+      /* Sayfa değişimini dinle */
+      document.addEventListener('pdfPageChanged', function(e) {
+        if (typeof window._liveNotifyPage === 'function') {
+          window._liveNotifyPage(e.detail.page);
+        }
+      });
+
+      /* Temizle butonu → RTDB'deki stroke'ları sil + cleared sinyali gönder */
+      window._liveClearPage = async function(pageNum) {
+        try {
+          /* Tüm stroke'ları çek, sayfaya ait olanları sil */
+          const { get } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+          const snap = await get(strokesWriteRef);
+          if (snap.exists()) {
+            const delPromises = [];
+            snap.forEach(child => {
+              if (child.val().page === pageNum) {
+                delPromises.push(rtRemove(rtRef(rtdb, `drawings/${ddUid}/strokes/${child.key}`)));
+              }
+            });
+            await Promise.all(delPromises);
+          }
+          /* Temizleme sinyali */
+          await rtUpdate(metaWriteRef, { cleared: pageNum, ts: Date.now() });
+        } catch(e) { console.warn('RTDB clear error:', e); }
+      };
+
+      /* Oturum sona erince strokes'ı temizle */
+      window.addEventListener('beforeunload', () => {
+        try { rtRemove(rtRef(rtdb, `drawings/${ddUid}/strokes`)); } catch(e) {}
+      });
+
+      showLiveBadge('student');
+    }
+
+    /* ══════════════════════════════════════════
+       BÖLÜM C — CANLI İZLEME (öğretmen / İzleyici tarafı)
+       URL: Temel_Matematik.html?watch=STUDENT_UID
+       Realtime Database onValue ile anlık dinleme
+    ══════════════════════════════════════════ */
+    if (isViewer) {
+      showLiveBadge('viewer');
+
+      /* Stroke'ları canvas'a çiz */
+      function applyStroke(stroke) {
+        const c = document.getElementById('draw-canvas');
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        const scaleX = c.width  / (stroke.cw || c.width);
+        const scaleY = c.height / (stroke.ch || c.height);
+        const pts = stroke.pts;
+        if (!pts || pts.length < 2) return;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x * scaleX, pts[0].y * scaleY);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i].x * scaleX, pts[i].y * scaleY);
+        }
+        if (stroke.tool === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.lineWidth = (stroke.size || 2) * 6;
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.lineWidth = stroke.size || 2;
+          ctx.strokeStyle = stroke.color || '#000';
+        }
+        ctx.lineCap  = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+
+      let currentWatchPage = null;
+      let lastClearedPage  = null;
+      let knownStrokeKeys  = new Set();
+      let viewerInited     = false;
+
+      /* Meta dinleyici: sayfa değişimi + temizleme sinyali */
+      const metaReadRef = rtRef(rtdb, `drawings/${targetUid}/meta`);
+      onValue(metaReadRef, function(snap) {
+        if (!snap.exists()) return;
+        const data = snap.val();
+
+        /* Temizleme sinyali */
+        if (data.cleared && data.cleared !== lastClearedPage) {
+          lastClearedPage = data.cleared;
+          if (data.cleared === currentWatchPage) {
+            const c = document.getElementById('draw-canvas');
+            if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+          }
+        }
+
+        /* Sayfa değişimi → PDF sayfasını senkronize et */
+        if (data.page && data.page !== currentWatchPage) {
+          currentWatchPage = data.page;
+          /* Canvas'ı temizle (yeni sayfa) */
+          const c = document.getElementById('draw-canvas');
+          if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+          if (typeof PDFKV !== 'undefined' && PDFKV.jumpToPage) {
+            PDFKV.jumpToPage(data.page);
+          }
+        }
+      });
+
+      /* Stroke'ları dinle: onValue ile tam liste, yeni eklenenler çizilir */
+      const strokesReadRef = rtRef(rtdb, `drawings/${targetUid}/strokes`);
+      onValue(strokesReadRef, function(snap) {
+        if (!snap.exists()) return;
+        /* Her onValue tetiklendiğinde canvas'ı temizle ve tüm stroke'ları yeniden çiz */
+        const c = document.getElementById('draw-canvas');
+        if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+        snap.forEach(function(child) {
+          const stroke = child.val();
+          /* Sadece şu anki sayfaya ait stroke'ları çiz */
+          if (currentWatchPage === null || stroke.page === currentWatchPage) {
+            applyStroke(stroke);
+          }
+        });
+        viewerInited = true;
+      });
+    }
+
+    /* ── Canlı durum rozeti ── */
+    function showLiveBadge(mode) {
+      /* Animasyon keyframe */
+      if (!document.getElementById('livePulseStyle')) {
+        const s = document.createElement('style');
+        s.id = 'livePulseStyle';
+        s.textContent = '@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}';
+        document.head.appendChild(s);
+      }
+
+      if (mode === 'viewer') {
+        /* ── ÖĞRETMEN GÖRÜNÜMÜ ── */
+        /* 1. Çizim toolbar'ını gizle */
+        const toolbar = document.getElementById('main-toolbar');
+        if (toolbar) toolbar.style.display = 'none';
+
+        /* 2. Öğretmen banner'ını göster */
+        const bar = document.getElementById('teacher-viewer-bar');
+        if (bar) bar.style.display = 'flex';
+
+        /* 3. Öğrenci adını banner'a yaz (URL'den UID al, fallback olarak UID göster) */
+        const lbl = document.getElementById('viewer-student-label');
+        if (lbl) lbl.textContent = '👤 ' + (targetUid || 'Öğrenci');
+
+        /* 4. Canvas'ı salt okunur yap — çizim disable */
+        const canvas = document.getElementById('draw-canvas');
+        if (canvas) {
+          canvas.style.pointerEvents = 'none';
+          canvas.classList.remove('active');
+        }
+        /* 5. Sidebar'ı da sade tut — soru paneli gizle */
+        const qPanel = document.getElementById('r3-panel');
+        if (qPanel) qPanel.style.display = 'none';
+
+      } else {
+        /* ── ÖĞRENCİ GÖRÜNÜMÜ ── */
+        const existing = document.getElementById('live-badge');
+        if (existing) existing.remove();
+        const badge = document.createElement('div');
+        badge.id = 'live-badge';
+        badge.style.cssText = [
+          'display:flex','align-items:center','gap:5px',
+          'padding:4px 10px','border-radius:99px',
+          'font-size:10px','font-weight:800','letter-spacing:.04em',
+          'font-family:Inter,sans-serif','pointer-events:none',
+          'box-shadow:0 1px 8px rgba(0,0,0,.12)','white-space:nowrap','flex-shrink:0',
+          'background:#d1fae5;color:#065f46;border:1.5px solid #10b981;'
+        ].join(';');
+        const dot = document.createElement('span');
+        dot.style.cssText = 'width:6px;height:6px;border-radius:50%;animation:livePulse 1.2s ease-in-out infinite;display:inline-block;flex-shrink:0;background:#10b981';
+        badge.appendChild(dot);
+        badge.appendChild(document.createTextNode('🟢 Canlı Yayın'));
+        const slot = document.getElementById('live-badge-slot');
+        if (slot) slot.appendChild(badge);
+        else { badge.style.cssText += ';position:fixed;bottom:80px;right:16px;z-index:9999;'; document.body.appendChild(badge); }
+      }
+    }
+
   } catch(e) { console.warn('Firebase init error:', e); }
 })();
 </script>
